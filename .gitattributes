@@ -1,0 +1,6 @@
+# Normalize line endings so a checkout is byte-identical on every machine.
+# Without this, Windows autocrlf gives CRLF working copies and other
+# platforms give LF — same commit, different bytes on disk. This project
+# ships a prebuilt bundle (game/dist/app.js) and runs byte-comparison
+# gates, so a stable working copy is worth pinning.
+* text=auto eol=lf
