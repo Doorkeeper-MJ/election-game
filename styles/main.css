@@ -1,0 +1,194 @@
+/* ============================================================
+   main.css  —  layout & structure
+   (theme colors, fonts, and broadcast flourishes live in newsroom.css)
+   ============================================================ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    display: grid;
+    grid-template-rows: 72px 64px 1fr 56px;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ---------- Header ------------------------------------------------ */
+.broadcast-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    column-gap: 24px;
+    align-items: center;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-divider {
+    width: 1px;
+    height: 22px;
+}
+
+.headline {
+    text-align: center;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+}
+
+.clock {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.btn {
+    font-family: inherit;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border: none;
+    border-radius: 2px;
+    padding: 9px 18px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* ---------- Stage (main 3-column area) ---------------------------- */
+.stage {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px;
+    gap: 12px;
+    padding: 12px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.panel-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+}
+
+.panel-title-bar {
+    width: 4px;
+    height: 18px;
+    display: inline-block;
+}
+
+.panel-body {
+    flex: 1;
+    padding: 14px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.map-stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ---------- Placeholders (will be replaced in later steps) -------- */
+.placeholder-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.placeholder-row {
+    height: 44px;
+    border-radius: 2px;
+}
+
+.placeholder-btn {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: not-allowed;
+}
+
+.placeholder-note {
+    margin-top: auto;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 4px;
+    padding-top: 8px;
+}
+
+.map-placeholder {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.map-placeholder-label {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 10px;
+}
+
+.map-placeholder-sub {
+    font-size: 11px;
+    letter-spacing: 6px;
+}
+
+/* ---------- Footer ticker ----------------------------------------- */
+.ticker {
+    display: flex;
+    align-items: stretch;
+}
+
+.ticker-label {
+    padding: 0 22px;
+    display: flex;
+    align-items: center;
+    letter-spacing: 4px;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.ticker-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 22px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

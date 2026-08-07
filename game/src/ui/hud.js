@@ -1,0 +1,30 @@
+/* hud.js — standings panel. Sorts a COPY of field (never mutates the
+   field's order, which the rng draw order depends on). */
+
+const { el } = require("./dom.js");
+
+function render(game) {
+    const wrap = el("div", { class: "panel hud" });
+    const sorted = game.field.slice().sort((a, b) => b.delegates - a.delegates);
+    const leader = sorted[0];
+
+    wrap.appendChild(el("h2", { text: "STANDINGS" }));
+    wrap.appendChild(el("div", {
+        class: "clinch",
+        text: `Leader: ${leader.name} — ${leader.delegates} / ${game.clinch} to clinch`
+    }));
+
+    const table = el("div", { class: "standings" });
+    for (const c of sorted) {
+        const isPlayer = c.id === game.playerId;
+        table.appendChild(el("div", { class: "cand-row" + (isPlayer ? " player" : "") }, [
+            el("span", { class: "cand-name", text: (isPlayer ? "▶ " : "") + c.name }),
+            el("span", { class: "cand-del", text: `${c.delegates} del` }),
+            el("span", { class: "cand-mo", text: `mo ${c.momentum.toFixed(1)}` })
+        ]));
+    }
+    wrap.appendChild(table);
+    return wrap;
+}
+
+module.exports = { render };

@@ -1,0 +1,139 @@
+/* newsroom.css — minimal dark theme for Slice 1. Visual polish (porting
+   the full newsroom look from the old scripts/ prototype) is Slice 4. */
+
+:root {
+    --bg: #11151c;
+    --panel: #1a212b;
+    --ink: #e7edf3;
+    --muted: #8a99a8;
+    --accent: #d83a34;   /* GOP red */
+    --gold: #d8a93a;
+    --line: #2a3441;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+}
+
+.topbar {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 12px 20px; background: #0c0f14; border-bottom: 2px solid var(--accent);
+}
+.topbar .brand { font-weight: 800; letter-spacing: 2px; }
+.topbar .sub { color: var(--muted); font-size: 12px; letter-spacing: 1px; }
+.seed-badge {
+    margin-left: auto; padding: 2px 8px; border-radius: 4px;
+    background: #3a2a0c; color: var(--gold); border: 1px solid var(--gold);
+    font-size: 11px; letter-spacing: 1px; font-weight: 700;
+}
+
+#app { max-width: 760px; margin: 0 auto; padding: 18px; }
+
+.panel {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;
+}
+.panel h2 { margin: 0 0 8px; font-size: 15px; letter-spacing: 1.5px; }
+.panel h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: 1px; color: var(--muted); }
+
+.hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+/* candidate select */
+.cand-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.cand-card {
+    display: flex; flex-direction: column; gap: 2px; text-align: left;
+    background: #141a22; color: var(--ink); border: 1px solid var(--line);
+    border-radius: 6px; padding: 10px 12px; cursor: pointer;
+}
+.cand-card:hover { border-color: var(--accent); }
+.cand-card.recommended { border-color: var(--gold); }
+.cc-name { font-weight: 700; }
+.cc-poll { color: var(--muted); font-size: 12px; }
+.cc-tag { color: var(--gold); font-size: 11px; letter-spacing: 1px; }
+
+/* standings */
+.clinch { color: var(--gold); font-size: 13px; margin-bottom: 8px; }
+.standings { display: flex; flex-direction: column; gap: 2px; }
+.cand-row {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 12px;
+    padding: 4px 6px; border-bottom: 1px solid var(--line); font-size: 14px;
+}
+.cand-row.player { background: #20303f; border-radius: 4px; }
+.cand-del { color: var(--ink); font-variant-numeric: tabular-nums; }
+.cand-mo { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* turn panel */
+.lever-label { font-size: 12px; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+.state-row { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 8px; padding: 3px 0; }
+.state-name { font-size: 13px; }
+.step { width: 26px; height: 26px; border-radius: 4px; border: 1px solid var(--line); background: #141a22; color: var(--ink); cursor: pointer; }
+.step:hover { border-color: var(--accent); }
+.alloc { width: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+
+.run-btn {
+    margin-top: 12px; padding: 9px 16px; border: none; border-radius: 6px;
+    background: var(--accent); color: #fff; font-weight: 700; letter-spacing: 1px; cursor: pointer;
+}
+.run-btn:hover { filter: brightness(1.1); }
+
+/* results */
+.result-row { font-size: 13px; padding: 2px 0; border-bottom: 1px solid var(--line); }
+
+/* end */
+.nominee { font-size: 15px; margin-bottom: 6px; }
+.verdict { font-weight: 700; margin-bottom: 12px; }
+.verdict.won { color: var(--gold); }
+.verdict.lost { color: var(--muted); }
+
+/* ---- Slice 2: legibility readout ---- */
+.effect-line {
+    margin: 2px 0 6px 14px; font-size: 13px; color: var(--gold);
+}
+.effect-flip {
+    margin: 0 0 8px 14px; font-size: 13px; font-weight: 700; color: #ffd76a;
+}
+.effect-summary {
+    margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line);
+    font-weight: 700; color: var(--gold);
+}
+.effect-none {
+    margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--muted);
+}
+
+/* ---- Slice 2: emphasis lever ---- */
+.emphasis-label { margin-top: 14px; }
+.emphasis-row .emph-meta { color: var(--muted); font-size: 12px; margin-left: 8px; }
+.emphasis-row.chosen .state-name { color: var(--gold); font-weight: 700; }
+.emph-pick.on { color: var(--gold); border-color: var(--gold); }
+
+/* ---- Slice 3: the broadcast booth ---- */
+.broadcast { border-color: #3a4757; }
+.bc-voice { margin: 10px 0; padding: 10px 12px; background: #141a23; border-left: 3px solid var(--line); border-radius: 4px; }
+.bc-announcer { border-left-color: var(--accent); }
+.bc-advisor   { border-left-color: #4a7fb5; }
+.bc-commentator { border-left-color: var(--gold); }
+.bc-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.bc-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: var(--ink); }
+.bc-sub { font-size: 11px; color: var(--muted); font-style: italic; }
+.bc-body { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+.bc-announcer .bc-body { font-weight: 600; color: #ffd9a8; }
+.bc-body.loading { color: var(--muted); letter-spacing: 3px; }
+.bc-body.error { color: #c98; font-size: 12px; }
+/* A voice that hit max_tokens is cut off mid-sentence — never let it read as finished. */
+.bc-body.truncated { border-left: 2px solid #d4643c; padding-left: 8px; opacity: 0.92; }
+.bc-cutoff { margin-top: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #ff9a6b; }
+.bc-btn { margin-top: 6px; background: #1f2937; color: var(--ink); border: 1px solid var(--line);
+          border-radius: 4px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+.bc-btn:hover { border-color: var(--gold); }
+.bc-btn.small { padding: 3px 9px; font-size: 11px; }
+.bc-btn.ghost { background: transparent; color: var(--muted); }
+.bc-nokey { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.bc-key-input { background: #0c0f14; color: var(--ink); border: 1px solid var(--line);
+                border-radius: 4px; padding: 5px 8px; font-size: 12px; min-width: 260px; }
+.bc-note { width: 100%; font-size: 11px; color: var(--muted); }

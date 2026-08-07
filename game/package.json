@@ -1,0 +1,15 @@
+{
+    "name":  "election-game-v1",
+    "version":  "0.1.0",
+    "private":  true,
+    "description":  "v1 play layer wrapping the frozen model/ engine (2016 GOP primary). Slice 1.",
+    "scripts":  {
+                    "build":  "esbuild src/main.js --bundle --format=iife --outfile=dist/app.js",
+                    "gate":  "node verify-gate.js",
+                    "gate:broadcast":  "node verify-broadcast.js",
+                    "gate:all":  "node verify-gate.js && node verify-makerng.js && node verify-legibility.js && node verify-broadcast.js"
+                },
+    "devDependencies":  {
+                            "esbuild":  "^0.21.5"
+                        }
+}

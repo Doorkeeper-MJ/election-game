@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election 2024 — Decision Day</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/newsroom.css">
+</head>
+<body>
+
+    <header class="broadcast-header">
+        <div class="brand">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span class="live-label">LIVE</span>
+            <span class="brand-divider"></span>
+            <span class="brand-title">ELECTION&nbsp;2024</span>
+        </div>
+        <div class="headline">DECISION&nbsp;DAY&nbsp;COVERAGE</div>
+        <div class="header-right">
+            <div class="clock" id="clock">— PRIMARY SEASON —</div>
+            <button class="btn btn-sim" id="btn-sim-primary" type="button" title="Auto-play with AI until conventions">▶▶&nbsp;SIM&nbsp;PRIMARY</button>
+            <button class="btn btn-sim" id="btn-sim-rest" type="button" title="Auto-play with AI to end of game">▶▶▶&nbsp;SIM&nbsp;REST</button>
+            <button class="btn btn-primary" id="btn-next-turn" type="button">NEXT&nbsp;TURN&nbsp;▶</button>
+        </div>
+    </header>
+
+    <main class="stage">
+
+        <aside class="panel panel-candidates" id="panel-candidates">
+            <div class="panel-title">
+                <span class="panel-title-bar"></span>
+                <span>THE FIELD</span>
+            </div>
+            <div class="panel-body">
+                <div class="placeholder-stack">
+                    <div class="placeholder-row placeholder-row--rep"></div>
+                    <div class="placeholder-row placeholder-row--dem"></div>
+                    <div class="placeholder-row placeholder-row--rep"></div>
+                    <div class="placeholder-row placeholder-row--rep"></div>
+                    <div class="placeholder-row placeholder-row--dem"></div>
+                    <div class="placeholder-row placeholder-row--ind"></div>
+                </div>
+                <p class="placeholder-note">CANDIDATE HUD</p>
+            </div>
+        </aside>
+
+        <section class="panel panel-map" id="panel-map">
+            <div class="panel-title">
+                <span class="panel-title-bar panel-title-bar--split"></span>
+                <span>ELECTORAL MAP</span>
+            </div>
+            <div class="map-stage">
+                <div class="map-placeholder">
+                    <div class="map-placeholder-label">AWAITING&nbsp;RETURNS</div>
+                    <div class="map-placeholder-sub">50 STATES &middot; 538 ELECTORAL VOTES</div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="panel panel-actions" id="panel-actions">
+            <div class="panel-title">
+                <span class="panel-title-bar panel-title-bar--blue"></span>
+                <span>CAMPAIGN ACTIONS</span>
+            </div>
+            <div class="panel-body">
+                <div class="placeholder-stack">
+                    <div class="placeholder-btn">RALLY</div>
+                    <div class="placeholder-btn">AD&nbsp;BUY</div>
+                    <div class="placeholder-btn">GROUND&nbsp;GAME</div>
+                    <div class="placeholder-btn">DEBATE&nbsp;PREP</div>
+                </div>
+                <p class="placeholder-note">ACTION PICKER</p>
+            </div>
+        </aside>
+
+    </main>
+
+    <footer class="ticker">
+        <div class="ticker-label">BREAKING</div>
+        <div class="ticker-content" id="ticker-content">
+            Election Game v0.1 &mdash; skeleton online. Awaiting candidate data, state data, and the calendar of contests.
+        </div>
+    </footer>
+
+    <!-- Data layer (loaded before state.js) -->
+    <script src="scripts/data/candidates.js"></script>
+    <script src="scripts/data/states.js"></script>
+    <script src="scripts/data/calendar.js"></script>
+    <script src="scripts/data/eventsDeck.js"></script>
+
+    <!-- Game-state model (depends on data) -->
+    <script src="scripts/state.js"></script>
+
+    <!-- UI modules (depend on state) -->
+    <script src="scripts/ui/map.js"></script>
+    <script src="scripts/ui/hud.js"></script>
+    <script src="scripts/ui/clock.js"></script>
+    <script src="scripts/ui/log.js"></script>
+
+    <!-- Engine (depends on state + ui) -->
+    <script src="scripts/engine/points.js"></script>
+    <script src="scripts/engine/actions.js"></script>
+    <script src="scripts/engine/aiPlayer.js"></script>
+    <script src="scripts/engine/contests.js"></script>
+    <script src="scripts/engine/events.js"></script>
+    <script src="scripts/engine/convention.js"></script>
+    <script src="scripts/engine/generalElection.js"></script>
+    <script src="scripts/engine/scoreboard.js"></script>
+    <script src="scripts/engine/autopsy.js"></script>
+    <script src="scripts/engine/autopsyAI.js"></script>
+    <script src="scripts/engine/turnLoop.js"></script>
+
+    <!-- Action picker (depends on engine.actions + ui.hud) -->
+    <script src="scripts/ui/actionsPanel.js"></script>
+
+    <!-- Scoreboard strip (Step 12) -->
+    <script src="scripts/ui/scoreboard.js"></script>
+
+    <!-- Candidate-select modal (Step 11.6) -->
+    <script src="scripts/ui/candidateSelect.js"></script>
+
+    <!-- End-game modal (Step 14) -->
+    <script src="scripts/ui/endGameScreen.js"></script>
+
+    <!-- Brokered convention modal (Step 15.4) -->
+    <script src="scripts/ui/brokeredModal.js"></script>
+
+    <!-- Bootstrap -->
+    <script src="scripts/main.js"></script>
+</body>
+</html>

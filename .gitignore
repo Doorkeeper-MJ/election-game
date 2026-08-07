@@ -1,0 +1,51 @@
+# ── Dependencies ────────────────────────────────────────────
+# Restorable with `cd game && npm install`. esbuild alone is ~10MB of
+# platform-specific binaries; it does not belong in history.
+game/node_modules/
+
+# ── Secrets — nothing matching these has ever existed here ──
+# Preventive only. The Anthropic API key for the broadcast lives in the
+# browser's localStorage and MUST NEVER be written to a file in this repo.
+# See game/README.md § API key (Gate B): a keyed build is for local use
+# only and is not safe to distribute.
+.env
+.env.*
+*.key
+*.pem
+*.p12
+secrets.json
+credentials.json
+**/apikey*
+**/api-key*
+
+# ── Machine-local Claude Code settings ──────────────────────
+# Per-machine permission grants with absolute Windows paths. Personal to
+# one checkout, not useful to anyone else. A shared .claude/settings.json
+# (no ".local") would be committed — there isn't one today.
+.claude/settings.local.json
+
+# ── OS / editor cruft ───────────────────────────────────────
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# ── Logs ────────────────────────────────────────────────────
+npm-debug.log*
+*.log
+
+
+# ════════════════════════════════════════════════════════════
+# DELIBERATELY *NOT* IGNORED — do not "clean this up"
+# ════════════════════════════════════════════════════════════
+# game/dist/app.js  — the built bundle IS the deliverable. The whole
+#   distribution promise is: unzip, double-click index.html, play — with
+#   no build step. Ignoring it breaks that for anyone who clones or
+#   downloads a zip of this repo. Rebuild with `cd game && npm run build`
+#   after changing anything under game/src/ or model/, and commit the
+#   result alongside the source change.
+#
+# game/package-lock.json — pinned dependency tree; keeps `npm install`
+#   reproducible.
