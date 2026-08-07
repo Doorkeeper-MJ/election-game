@@ -1,10 +1,49 @@
 # PROJECT STATUS — Election 2024 game
 
-> **⚠️ TWO TRACKS — read first.** This doc began as the status for the **OLD "Election 2024" prototype** (`scripts/`). Everything in the historical sections below — "v1 COMPLETE — 2026-05-22," Step 15.7, the Done list, the Ship checklist — refers to **that prototype**, now **PARKED (visual reference only)**. The **active project** is the **v1 play layer** (`game/` + frozen `model/`, 2016 GOP) — see the "PLAY LAYER — v1 Slice 1" section. Where the old sections say "v1," they mean the *prototype's* v1, not the active one. The two known prototype issues (left-column party mixing, DeSantis-wins-too-often) are parked in `FUTURE_FEATURES.md` → "Old 2024 Prototype" and are **NOT active v1 work**. v1's real next step is **Slice 2**.
+> **⚠️ TWO TRACKS — read first.** This doc began as the status for the **OLD "Election 2024" prototype** (`scripts/`). Everything in the historical sections below — "v1 COMPLETE — 2026-05-22," Step 15.7, the Done list, the Ship checklist — refers to **that prototype**, now **PARKED (visual reference only)**. The **active project** is the **v1 play layer** (`game/` + frozen `model/`, 2016 GOP) — see the "PLAY LAYER — v1 Slice 1" section. Where the old sections say "v1," they mean the *prototype's* v1, not the active one. The two known prototype issues (left-column party mixing, DeSantis-wins-too-often) are parked in `FUTURE_FEATURES.md` → "Old 2024 Prototype" and are **NOT active v1 work**. For where the active project actually stands, read the **SESSION HANDOFF** block immediately below.
 
 **v1 COMPLETE — 2026-05-22.** All 14 core steps + 6 of 7 polish items shipped. 15.6 (VP pick) deferred to v1.1 → see `FUTURE_FEATURES.md`. Game is end-to-end playable and balance-tuned. Remaining work is shipping-mechanics only (browser smoke-test, README, distribution), not new features.
 
 > **▶ DESIGN VISION — read before any play-layer build.** The play-layer vision lives in the vault note **`Election Game — Design Vision`** (`C:\Obsidian\MJ Life Hub\06 - Leisure\Election Game\Election Game — Design Vision.md` — path corrected 2026-07-25 after the July 23 vault cleanup moved it out of the vault root). **NOTE: `Election Game — v2 Vision` (same folder) is the GOVERNING vision note**; this Design Vision is the v1-scope record — read it for v1 pillars, but v2 Vision governs direction. It defines the four pillars — what-if engine, new-game setup page, real turns, and per-candidate AI Campaign Advisor — that sit *on top of* the validated engine. This `PROJECT_STATUS` covers the shipped engine/physics; the Design Vision covers the game/play layer that comes next. Do not start a play-layer feature without reading it.
+
+---
+
+# ▶ SESSION HANDOFF — 2026-08-07 (session close)
+
+**Fresh session: start here.** Everything below this block is build history. This block is the live state.
+
+## Closed today
+
+- **SLICE 3 ACCEPTED** — MJ's keyed 22-turn playtest, played as Ted Cruz from `file://`. **Cruz won the nomination.** All three broadcast voices held character across the full run; the two-paragraph commentator constraint did not flatten the voice; **zero CUT OFF markers** (the commentator's `max_tokens: 1500` holds). Character review of `game/src/broadcast/prompts.js` is **closed — no further changes**. Details in the SLICE 3 ACCEPTED section below.
+- **Root entry point repointed.** Root `index.html` used to load the parked 2024 prototype, so unzip-and-double-click started the *wrong game*. The prototype page is now **`prototype-2024.html`** (same directory, all 28 asset paths still resolve) and root `index.html` is a **launcher** that redirects to `game/index.html`, with a fallback link, a build-step hint, and a labeled link to the prototype. Deliberately a launcher, **not** a copy of the game page — one canonical HTML, no drift. Both READMEs rewritten to match.
+- **Version control live.** `git init` → **3 commits** → pushed to the **private** repo `Doorkeeper-MJ/election-game` (`main`). Local and remote HEAD verified identical at `43de932`. Secret scan before the first commit: **clean** — no key, token, or credential anywhere, `.claude/settings.local.json` and `node_modules/` excluded, **`game/dist/app.js` committed on purpose** (the distribution promise needs the prebuilt bundle in the repo — `.gitignore` says so in a "do not clean this up" block).
+- **Repo hygiene.** `.gitattributes` pins `* text=auto eol=lf` so checkouts are byte-identical across machines. `model_backup_2026-06-09.zip` deleted — git versions `model/` now; recoverable via `git show 5a7af37:model_backup_2026-06-09.zip`.
+
+## What remains on v1 — three items
+
+1. **Slice 4** — Quick Start modal + tooltips + menu/visual polish.
+2. **Sound** — Tiers 1/2/5 + Poll-Close Drumroll per `game/SOUND_SPEC.md`. Tiers 3–4 are parked to v2 (no events system exists in v1); the ship checklist must confirm **no Tier 4 path exists**.
+3. **Ship mechanics** — browser smoke-test + distribution.
+
+*(Gate addition B and the root entry point were the other two open items; both closed today.)*
+
+## ▶ THE SINGLE NEXT ACTION
+
+**Build the Quick Start welcome modal** — the highest-impact piece of Slice 4, and the one `FUTURE_FEATURES.md` flags as worth building before the rest.
+
+- **New file:** `game/src/ui/quickStart.js`, wired into `game/src/main.js`.
+- **Follow the existing modal pattern** in `game/src/ui/candidateSelect.js` — same overlay structure and the same visual language; styles go in `game/css/newsroom.css` alongside the `.bc-*` rules.
+- **4–5 short panels:** (1) the goal — clinch 1,237 delegates or lead when the calendar runs out; (2) the turn — one calendar date at a time; (3) the two levers — where to campaign (3 effort points) and what to emphasize (one issue axis, or none); (4) the gold readout — what the measured-effect line is telling you; (5) the broadcast is optional and off without a key.
+- **Show on first launch**, and make it re-openable from a header button.
+- **After building:** `cd game && npm run build`, then `npm run gate:all` (all four must stay green), then commit. `?seed=NNNNNNNN` on the URL locks the seed for repeatable checks.
+
+## Things a fresh session would otherwise rediscover the hard way
+
+- **`max_tokens` is not a word budget — it depends on the MODEL.** `claude-opus-5` runs **adaptive thinking on by default** (a breaking change from Opus 4.8, where omitting the `thinking` field meant no thinking), and `max_tokens` caps **thinking + visible text together**. This is what truncated the commentator at ~130 words against a 400 ceiling on 2026-08-06 — and why three prompt-side fixes could not work: a model cannot see its own budget. **Changing any voice's model requires revisiting its `max_tokens` in the same edit.** The `VOICES` table in `game/src/broadcast/client.js` carries this rule; the announcer's 200 is safe *only* because Sonnet 4.6 does no thinking there. Gate C PART 5 now machine-checks that a clipped voice can never render as a finished call.
+- **`file://` play is CONFIRMED** for the keyed build — verified in the Aug 7 playtest. The earlier worry that a `null` origin would be CORS-rejected, or that `localStorage` wouldn't hold the key across a double-click launch, did not materialize. Do not re-add a "serve the folder" instruction; the only prerequisite is that `npm run build` has run once.
+- **`model/` is FROZEN.** Read by the play layer, never written. Play-layer tuning lives in `game/src/config-play.js`.
+- **V2 SEEDS BANKED 2026-08-07** in `FUTURE_FEATURES.md` — momentum runaway (the delegate leader's raw score can go negative and be floored to 0.1, making him non-viable in a contest he leads by ~200 delegates; observed at seed 20160201, 2016-03-08, Cruz taking 150 of 150 across four states), no dropout logic (all nine candidates dilute the viability denominator all season), and AI candidates that respond to the player (cross-referenced to the July 27 AI-opponents seed, not duplicated). Also added: the **events system** as its own entry — it does not exist in v1, the prototype implementation is at `scripts/data/eventsDeck.js` + `scripts/engine/events.js`, and Sound Tiers 3/4 depend on it. **None of it is v1** — all of it invalidates Gate A baselines and the 200-seed sweep, which is exactly why it is banked rather than built.
+- **Git conventions here:** branch is `main`, identity is set **repo-local** (`Michael A. Jones <287077632+Doorkeeper-MJ@users.noreply.github.com>`), remote is `origin` → private `Doorkeeper-MJ/election-game`. Credentials are stored by Git Credential Manager, so pushes no longer prompt. **Rebuild and commit `game/dist/app.js` alongside any change under `game/src/` or `model/`** — a source change without the rebuilt bundle silently ships a stale game.
 
 ---
 
