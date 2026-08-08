@@ -12,6 +12,7 @@ const { resolveTurn, evaluateEnd } = require("./turnLoop.js");
 const CFG = require("./config-play.js");
 const { clear } = require("./ui/dom.js");
 const candidateSelect = require("./ui/candidateSelect.js");
+const quickStart = require("./ui/quickStart.js");
 const hud = require("./ui/hud.js");
 const turnPanel = require("./ui/turnPanel.js");
 const resultsPanel = require("./ui/resultsPanel.js");
@@ -88,6 +89,7 @@ function renderEnd() {
 
 function boot() {
     showSeedBadge();
+    quickStart.install();   // header "? HOW TO PLAY" button + first-launch auto-open (after badge — CSS expects badge-then-button order)
     renderSelect();
 }
 

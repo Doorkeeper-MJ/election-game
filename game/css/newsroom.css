@@ -137,3 +137,49 @@ body {
 .bc-key-input { background: #0c0f14; color: var(--ink); border: 1px solid var(--line);
                 border-radius: 4px; padding: 5px 8px; font-size: 12px; min-width: 260px; }
 .bc-note { width: 100%; font-size: 11px; color: var(--muted); }
+
+/* ---- Slice 4: Quick Start modal ---- */
+.qs-help {
+    margin-left: auto; background: #1f2937; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px;
+    font-size: 11px; letter-spacing: 1px; font-weight: 700; cursor: pointer;
+}
+.qs-help:hover { border-color: var(--gold); color: var(--gold); }
+/* dev-seed mode: the badge already carries margin-left:auto — don't double it */
+.seed-badge + .qs-help { margin-left: 10px; }
+
+.qs-overlay {
+    position: fixed; inset: 0; z-index: 50; background: rgba(8, 11, 16, 0.78);
+    display: flex; align-items: flex-start; justify-content: center;
+    overflow-y: auto; padding: 32px 16px;
+}
+.qs-modal {
+    position: relative; width: 100%; max-width: 560px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-top: 2px solid var(--accent); border-radius: 8px;
+    padding: 18px 20px 20px;
+}
+.qs-title { margin: 0 0 10px; font-size: 16px; letter-spacing: 2px; }
+.qs-x {
+    position: absolute; top: 10px; right: 12px; background: none; border: none;
+    color: var(--muted); font-size: 14px; cursor: pointer;
+}
+.qs-x:hover { color: var(--ink); }
+.qs-panel { padding: 9px 0; border-top: 1px solid var(--line); }
+.qs-panel-title {
+    font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
+    color: var(--gold); margin-bottom: 3px;
+}
+.qs-line { margin: 4px 0; font-size: 14px; line-height: 1.5; }
+.qs-line.lead { font-weight: 700; }
+.qs-line.quiet { font-size: 12px; color: var(--muted); }
+.qs-example {
+    margin: 6px 0 4px; font-size: 13px; color: var(--gold);
+    background: #141a23; border-left: 3px solid var(--gold);
+    padding: 6px 10px; border-radius: 4px; font-variant-numeric: tabular-nums;
+}
+.qs-readme {
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--muted);
+}
+.qs-go { margin-top: 12px; }

@@ -8,11 +8,18 @@
 
 ---
 
-# ▶ SESSION HANDOFF — 2026-08-07 (session close)
+# ▶ SESSION HANDOFF — 2026-08-08 (session close)
 
 **Fresh session: start here.** Everything below this block is build history. This block is the live state.
 
-## Closed today
+## Closed today (2026-08-08)
+
+- **Quick Start modal BUILT** — the highest-impact piece of Slice 4. New `game/src/ui/quickStart.js` (overlay, five panels: THE RACE / THE TURN / YOUR LEVERS / THE GOLD READOUT / THE BROADCAST), wired into `main.js` boot; `.qs-*` styles in `newsroom.css`. Auto-opens on first launch (`localStorage` flag `egv1.quickstart_seen`, set on dismiss), re-openable from a **? HOW TO PLAY** header button. Verified live in a browser: first-launch auto-open, dismiss, no-reopen after reload, header-button re-open, Escape close, game unbroken, zero console errors. **All copy is DRAFT** — structure locked, wording replaceable; final copy is a separate pass.
+- **Slice 4 spec written** — `game/SLICE4_QUICKSTART.md`. Carries the **governing principle (set by MJ 2026-08-08): the modal covers what a player must know before turn one; the broadcast voices cover everything learned after; deeper system logic lives in the README, not the UI.** The modal states what the player controls, never what the game does in reply — momentum and system responses are deliberately excluded. Also records: gold-readout panel included (the `(16 vs 14)` counterfactual reading is not discoverable unaided), levers kept to one panel, and the pattern note that `candidateSelect.js` is an inline panel — the play layer had no existing overlay, so the overlay was built new in the shared visual language.
+- **README "How the simulation works" section added** (`game/README.md`) — the destination of the modal's footer link. Anticipation-building, not spoiler: determinism, 2016 allocation rules, momentum (behavior gestured at, constants withheld), the measured counterfactual, voice constraints. Flagged DRAFT alongside the modal copy.
+- **Democratic-primary v2 seed — already logged, verified, not duplicated.** `FUTURE_FEATURES.md` already carries the 2026-08-08 section with the "second rules engine, not a reskin" reasoning (proportional + 15% threshold + CD splits; superdelegates outside the contest loop).
+
+## Closed 2026-08-07
 
 - **SLICE 3 ACCEPTED** — MJ's keyed 22-turn playtest, played as Ted Cruz from `file://`. **Cruz won the nomination.** All three broadcast voices held character across the full run; the two-paragraph commentator constraint did not flatten the voice; **zero CUT OFF markers** (the commentator's `max_tokens: 1500` holds). Character review of `game/src/broadcast/prompts.js` is **closed — no further changes**. Details in the SLICE 3 ACCEPTED section below.
 - **Root entry point repointed.** Root `index.html` used to load the parked 2024 prototype, so unzip-and-double-click started the *wrong game*. The prototype page is now **`prototype-2024.html`** (same directory, all 28 asset paths still resolve) and root `index.html` is a **launcher** that redirects to `game/index.html`, with a fallback link, a build-step hint, and a labeled link to the prototype. Deliberately a launcher, **not** a copy of the game page — one canonical HTML, no drift. Both READMEs rewritten to match. **VERIFIED LIVE 2026-08-07 (MJ):** double-clicked from the filesystem, the meta-refresh fired, and it landed on the 2016 GOP candidate picker. Confirmed in a real browser, not by path analysis.
@@ -21,21 +28,17 @@
 
 ## What remains on v1 — three items
 
-1. **Slice 4** — Quick Start modal + tooltips + menu/visual polish.
+1. **Slice 4** — tooltips + menu/visual polish. *(Quick Start modal ✅ built 2026-08-08 — copy still DRAFT; see `game/SLICE4_QUICKSTART.md`.)*
 2. **Sound** — Tiers 1/2/5 + Poll-Close Drumroll per `game/SOUND_SPEC.md`. Tiers 3–4 are parked to v2 (no events system exists in v1); the ship checklist must confirm **no Tier 4 path exists**.
 3. **Ship mechanics** — browser smoke-test + distribution.
 
-*(Gate addition B and the root entry point were the other two open items; both closed today.)*
-
 ## ▶ THE SINGLE NEXT ACTION
 
-**Build the Quick Start welcome modal** — the highest-impact piece of Slice 4, and the one `FUTURE_FEATURES.md` flags as worth building before the rest.
+**Slice 4, next piece: static "?" tooltips per panel** (DoD item 4 — static help only, no Tutorial Mode). The Slice 4 spec's governing principle applies: tooltips explain what's on screen, never the engine's reply — see `game/SLICE4_QUICKSTART.md` before starting. The gold readout's tooltip can stay light: the modal now carries the counterfactual explanation.
 
-- **New file:** `game/src/ui/quickStart.js`, wired into `game/src/main.js`.
-- **Follow the existing modal pattern** in `game/src/ui/candidateSelect.js` — same overlay structure and the same visual language; styles go in `game/css/newsroom.css` alongside the `.bc-*` rules.
-- **4–5 short panels:** (1) the goal — clinch 1,237 delegates or lead when the calendar runs out; (2) the turn — one calendar date at a time; (3) the two levers — where to campaign (3 effort points) and what to emphasize (one issue axis, or none); (4) the gold readout — what the measured-effect line is telling you; (5) the broadcast is optional and off without a key.
-- **Show on first launch**, and make it re-openable from a header button.
-- **After building:** `cd game && npm run build`, then `npm run gate:all` (all four must stay green), then commit. `?seed=NNNNNNNN` on the URL locks the seed for repeatable checks.
+Separate small item, schedulable anytime: **final copy pass** over the Quick Start modal (`game/src/ui/quickStart.js`) and the README "How the simulation works" section — both flagged DRAFT in place.
+
+- **After building:** `cd game && npm run build`, then `npm run gate:all` (all four must stay green), then commit — including the rebuilt `game/dist/app.js`. `?seed=NNNNNNNN` on the URL locks the seed for repeatable checks.
 
 ## Things a fresh session would otherwise rediscover the hard way
 
@@ -107,7 +110,7 @@ A fresh play layer now lives in **`game/`**, built ALONGSIDE a **FROZEN `model/`
 **BROADCAST TRUNCATION — found and fixed 2026-08-06 (the reason 1500 is the number).** The commentator was cutting off mid-sentence at ~130 words against a 400-token ceiling. Root cause was **not** the prompt: `claude-opus-5` runs **adaptive thinking on by default** — a breaking change from Opus 4.8, where omitting the `thinking` field meant no thinking — and `max_tokens` caps **thinking plus visible text together**. Most of the 400 was spent before a word was written, which is why three successive prompt-side fixes could not work: a model cannot see its own budget. Fixes shipped: commentator `max_tokens` **400 → 1500**; a visible **CUT OFF** marker so a clipped voice can never render as a finished call; `usage.output_tokens` reported in the console warning so the next one diagnoses itself. **Gate C gained PART 5 — TRUNCATION SURFACING** (`npm run gate:broadcast`), which drives the real client + panel with `fetch` stubbed and asserts both directions (clipped ⇒ marked, complete ⇒ clean); verified to fail on a deliberate regression. The `VOICES` table now carries the standing rule: **`max_tokens` is not a word budget — it depends on the MODEL**, and changing a voice's model requires revisiting its ceiling in the same edit. The announcer's 200 is safe *only* because Sonnet 4.6 does no thinking there.
 
 **NEXT — v1 ship list, Slices 1–3 CLOSED:**
-1. **Slice 4** — menu/visual polish + Quick Start + tooltips.
+1. **Slice 4** — menu/visual polish + tooltips. *(Quick Start modal ✅ 2026-08-08, copy DRAFT.)*
 2. **Sound** — Tiers 1/2/5 + Poll-Close Drumroll per `game/SOUND_SPEC.md` (Tiers 3–4 parked to v2; ship checklist must confirm **no Tier 4 path exists**).
 3. **Gate addition B — ✅ SATISFIED.** Already written during the Slice 3 build; it is `game/README.md` § API key. Restated at the root README too (2026-08-07), since that is the file a distributor reads first: a browser-direct key is fine for a local single-player tool, **not ship-safe** for public or commercial release (key is readable out of `localStorage`; calls unmetered and unauthenticated; a public build needs a server-side proxy). **Ship unkeyed.**
 4. **Root entry point — ✅ REPOINTED 2026-08-07.** Root `index.html` used to load the parked 2024 prototype, so unzipping and double-clicking the obvious file started the *wrong game*. Now: the old prototype page is renamed **`prototype-2024.html`** (same directory, so its `scripts/` + `styles/` paths still resolve), and root `index.html` is a **launcher** that redirects to `game/index.html`, with a visible fallback link, a build-step hint for the blank-page case, and a labeled link to the parked prototype. Deliberately a launcher and **not** a copy of the game page — one canonical HTML, no drift. Root `README.md` rewritten to lead with the v1 game; the prototype is documented as reference-only.

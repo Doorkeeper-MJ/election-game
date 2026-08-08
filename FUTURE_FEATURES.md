@@ -48,6 +48,22 @@ Why this is the largest of the four, honestly:
 
 ---
 
+# V2 SEEDS — captured 2026-08-08 (scope decision, not a playtest)
+
+## Democratic primary
+
+**Logged, not scoped.** v1 is the **2016 Republican** primary only — not a general election, not a two-party simulator.
+
+**Why this is v2 and not a v1 stretch: proportional allocation and superdelegates are a second rules engine, not a reskin of the existing one.** The frozen `model/` implements the allocation rules of the 2016 GOP field — a mix of winner-take-all, proportional, and hybrid, resolved contest by contest down the calendar. The Democratic side does not sit on top of that:
+
+- **Proportional allocation with a 15% threshold, split statewide and by congressional district.** That is a different allocation function, not different constants — and CD-level splits need district-level data the current model does not carry.
+- **Superdelegates break the engine's core assumption that delegates are won at contests.** They are unpledged, they exist outside the calendar, and they can move without any contest occurring. There is no hook for that in a loop that awards delegates only when a state votes.
+- **Different clinch threshold and a different field shape** — two serious candidates rather than nine. The viability-denominator dynamics that dominate the GOP model (see seed #2 below) are structurally absent, so the balance work would not transfer either.
+
+*(Delegate counts and superdelegate totals above are from memory and would need verifying against the 2016 DNC rules before any build.)*
+
+**Consequence: a second engine alongside the frozen one, not an extension of it** — which also means a second set of acceptance baselines. Nothing here is v1.
+
 # V2 SEEDS — captured 2026-08-07 (MJ playtest)
 
 Three items from MJ's **August 7, 2026** playtest of the 2016 GOP slice. Unlike the July 27 batch — mostly presentation and atmosphere — **all three are engine-level**. Each one touches the **frozen `model/`**, and therefore each one invalidates the acceptance baselines v1 rests on: Gate A's digit-for-digit identity at seed 20160201 (Trump 1327 / Cruz 978 / Carson 150 / Rubio 16) and the 200-seed balance sweep (hands-off 18% · emphasis-only 25.5% · effort-only 36% · both 41%). **That is the whole reason they are v2 and not v1** — the fix is small, the re-validation is not.
