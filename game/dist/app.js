@@ -676,15 +676,38 @@
     }
   });
 
+  // src/ui/tip.js
+  var require_tip = __commonJS({
+    "src/ui/tip.js"(exports, module) {
+      var { el } = require_dom();
+      function tip(text) {
+        const body = el("div", { class: "tip-body hidden", text });
+        const btn = el("button", {
+          class: "tip-btn",
+          text: "?",
+          "aria-label": "What is this panel?",
+          onClick: () => {
+            body.className = body.className.indexOf("hidden") >= 0 ? "tip-body" : "tip-body hidden";
+          }
+        });
+        return { btn, body };
+      }
+      module.exports = { tip };
+    }
+  });
+
   // src/ui/hud.js
   var require_hud = __commonJS({
     "src/ui/hud.js"(exports, module) {
       var { el } = require_dom();
+      var { tip } = require_tip();
       function render(game2) {
         const wrap = el("div", { class: "panel hud" });
         const sorted = game2.field.slice().sort((a, b) => b.delegates - a.delegates);
         const leader = sorted[0];
-        wrap.appendChild(el("h2", { text: "STANDINGS" }));
+        const t = tip(`Everyone in the race, sorted by delegates. "del" is delegates won \u2014 first to ${game2.clinch} clinches the nomination. "mo" is momentum: the wind at a campaign's back (or in its face) right now. \u25B6 marks you.`);
+        wrap.appendChild(el("h2", { text: "STANDINGS" }, [t.btn]));
+        wrap.appendChild(t.body);
         wrap.appendChild(el("div", {
           class: "clinch",
           text: `Leader: ${leader.name} \u2014 ${leader.delegates} / ${game2.clinch} to clinch`
@@ -712,12 +735,14 @@
       var CFG2 = require_config_play();
       var { AXES } = require_data_2016();
       var emphasisLever = require_emphasisLever();
+      var { tip } = require_tip();
       function render(game2, onResolve2) {
         const turn = game2.turns[game2.turnIndex];
         const player = game2.field.find((c) => c.id === game2.playerId);
         const wrap = el("div", { class: "panel turn-panel" });
         const moves = { effort: {}, emphasis: null };
         const POOL = CFG2.EFFORT_POOL;
+        const t = tip(`Your moves for this date, then RUN CONTEST(S). WHERE TO CAMPAIGN: + and \u2212 spread your ${POOL} effort points across the states voting today. WHAT TO EMPHASIZE: \u25CB picks one issue to press \u2014 "you" is your position, "mood" is the electorate's, 0\u201310. Both are optional; skip both to play it straight.`);
         function used() {
           return Object.keys(moves.effort).reduce((s, k) => s + moves.effort[k], 0);
         }
@@ -726,7 +751,8 @@
         }
         function redraw() {
           clear2(wrap);
-          wrap.appendChild(el("h3", { text: `Turn ${game2.turnIndex + 1} of ${game2.turns.length} \u2014 ${turn.date}` }));
+          wrap.appendChild(el("h3", { text: `Turn ${game2.turnIndex + 1} of ${game2.turns.length} \u2014 ${turn.date}` }, [t.btn]));
+          wrap.appendChild(t.body);
           wrap.appendChild(el("div", {
             class: "lever-label",
             text: `WHERE TO CAMPAIGN \u2014 ${POOL} effort points (remaining: ${remaining()})`
@@ -803,6 +829,7 @@
   var require_resultsPanel = __commonJS({
     "src/ui/resultsPanel.js"(exports, module) {
       var { el } = require_dom();
+      var { tip } = require_tip();
       function lastName(full) {
         const parts = full.split(" ");
         return parts[parts.length - 1];
@@ -824,7 +851,9 @@
         const player = game2.field.find((c) => c.id === game2.playerId);
         const playerName = player ? player.name : null;
         const wrap = el("div", { class: "panel results" });
-        wrap.appendChild(el("h3", { text: `Results \u2014 ${lastResult2.date}` }));
+        const t = tip("Each line: the state, the delegates it carried, and who won them. The gold \u21B3 line is the measured effect of your moves \u2014 your delegates with them versus without, same contest, same dice. \u26A1 means your moves changed who won the state.");
+        wrap.appendChild(el("h3", { text: `Results \u2014 ${lastResult2.date}` }, [t.btn]));
+        wrap.appendChild(t.body);
         let pushedAnywhere = false;
         let netPlayerDelta = 0;
         for (const c of lastResult2.contests) {
@@ -1213,6 +1242,7 @@ ${FORMAT_RULE}`;
     "src/ui/broadcastPanel.js"(exports, module) {
       var { el } = require_dom();
       var client = require_client();
+      var { tip } = require_tip();
       var cache = {};
       var keyPromptOpen = false;
       function turnKey(game2) {
@@ -1231,7 +1261,9 @@ ${FORMAT_RULE}`;
       };
       function render(game2, lastResult2, rerender) {
         const wrap = el("div", { class: "panel broadcast" });
-        wrap.appendChild(el("h3", { text: "THE BROADCAST" }));
+        const t = tip("Three optional voices. PLAY-BY-PLAY calls each result on its own; the ADVISOR and the COMMENTATOR speak when you ask. All three read only the game's real numbers. Off without an API key \u2014 and with one, the calls are billed to that key's account.");
+        wrap.appendChild(el("h3", { text: "THE BROADCAST" }, [t.btn]));
+        wrap.appendChild(t.body);
         if (!client.hasKey()) {
           if (!keyPromptOpen) {
             wrap.appendChild(el("div", { class: "bc-nokey" }, [

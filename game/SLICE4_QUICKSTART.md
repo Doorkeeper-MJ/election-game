@@ -1,6 +1,6 @@
-# SLICE 4 — Quick Start modal (spec + decisions)
+# SLICE 4 — Quick Start modal + tooltips (spec + decisions)
 
-*Built 2026-08-08. Scope: the modal only. Tooltips and menu/visual polish follow in order — they are Slice 4's remaining pieces, not part of this build.*
+*Modal built 2026-08-08; tooltips built later the same day. Menu/visual polish is Slice 4's remaining piece.*
 
 ---
 
@@ -78,6 +78,23 @@ README keeps the same content as **the technical front door for GitHub visitors*
 **two audiences, two documents**, decided by MJ. Drift risk is real and accepted;
 both files carry an "edit one, edit both" sync comment. (Flagged against the vault's
 one-home rule at decision time; MJ ruled the two-audience split worth it.)
+
+## Tooltips (built 2026-08-08, same day, after the modal)
+
+Static **"?" per panel** — STANDINGS, the turn panel, results, and the broadcast —
+via one shared helper (`src/ui/tip.js`): a small round "?" in the panel heading,
+click to toggle a short static blurb. No hover-only behavior (touch-hostile), no
+per-element tooltips, no Tutorial Mode. The turn panel's tip nodes are created once
+and re-appended on redraw so open/closed state survives +/− clicks.
+
+The governing principle applies: **a tip explains what is on screen in its panel,
+never what the engine does in reply.** The STANDINGS tip names what "mo" *is* (the
+wind at a campaign's back right now) without teaching the mechanics; the results tip
+restates the counterfactual reading in one line (the modal carries the full
+explanation).
+
+**Tooltip copy: DRAFT — not yet through MJ's pass** (unlike the modal copy, which is
+FINAL). Flagged at each call site and in `tip.js`.
 
 ## Standard
 

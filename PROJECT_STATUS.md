@@ -28,15 +28,17 @@
 
 ## What remains on v1 — three items
 
-1. **Slice 4** — tooltips + menu/visual polish. *(Quick Start modal ✅ built 2026-08-08 — copy still DRAFT; see `game/SLICE4_QUICKSTART.md`.)*
+1. **Slice 4** — menu/visual polish only. *(Quick Start modal ✅ 2026-08-08, copy FINAL after MJ's pass; "?" tooltips ✅ 2026-08-08, copy DRAFT; rules page `game/rules.html` ✅ — see `game/SLICE4_QUICKSTART.md`.)*
 2. **Sound** — Tiers 1/2/5 + Poll-Close Drumroll per `game/SOUND_SPEC.md`. Tiers 3–4 are parked to v2 (no events system exists in v1); the ship checklist must confirm **no Tier 4 path exists**.
 3. **Ship mechanics** — browser smoke-test + distribution.
 
+**REPO IS PUBLIC — 2026-08-08.** `github.com/Doorkeeper-MJ/election-game`, flipped with MJ's explicit approval after identity scrub. History was **rewritten** the same day (all commit hashes changed, force-pushed): every commit re-authored to the GitHub noreply address, and the Remark email scrubbed from historical `PROJECT_STATUS.md` content. **Any pre-rewrite clone elsewhere is now invalid — re-clone, don't pull.**
+
 ## ▶ THE SINGLE NEXT ACTION
 
-**Slice 4, next piece: static "?" tooltips per panel** (DoD item 4 — static help only, no Tutorial Mode). The Slice 4 spec's governing principle applies: tooltips explain what's on screen, never the engine's reply — see `game/SLICE4_QUICKSTART.md` before starting. The gold readout's tooltip can stay light: the modal now carries the counterfactual explanation.
+**Slice 4, last piece: menu/visual polish** — port the newsroom look from the parked prototype (`styles/`, visual reference only) to taste, against the DoD standard: clear, not perfect; a standard nobody asked for is out of scope.
 
-Separate small item, schedulable anytime: **final copy pass** over the Quick Start modal (`game/src/ui/quickStart.js`) and the README "How the simulation works" section — both flagged DRAFT in place.
+Separate small item, schedulable anytime: **MJ's copy pass** over the tooltip strings (`game/src/ui/tip.js` call sites) and the README "How the simulation works" / `rules.html` content — modal copy is already FINAL.
 
 - **After building:** `cd game && npm run build`, then `npm run gate:all` (all four must stay green), then commit — including the rebuilt `game/dist/app.js`. `?seed=NNNNNNNN` on the URL locks the seed for repeatable checks.
 

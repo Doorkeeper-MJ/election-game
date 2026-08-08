@@ -10,6 +10,7 @@ const { el, clear } = require("./dom.js");
 const CFG = require("../config-play.js");
 const { AXES } = require("../../../model/data-2016.js");
 const emphasisLever = require("../levers/emphasisLever.js");
+const { tip } = require("./tip.js");
 
 function render(game, onResolve) {
     const turn = game.turns[game.turnIndex];
@@ -18,6 +19,10 @@ function render(game, onResolve) {
     const moves = { effort: {}, emphasis: null };
     const POOL = CFG.EFFORT_POOL;
 
+    // Created once, re-appended on each redraw so the open/closed state
+    // survives +/− clicks. DRAFT copy (Slice 4 tooltips) — pending MJ's pass.
+    const t = tip(`Your moves for this date, then RUN CONTEST(S). WHERE TO CAMPAIGN: + and − spread your ${POOL} effort points across the states voting today. WHAT TO EMPHASIZE: ○ picks one issue to press — "you" is your position, "mood" is the electorate's, 0–10. Both are optional; skip both to play it straight.`);
+
     function used() {
         return Object.keys(moves.effort).reduce((s, k) => s + moves.effort[k], 0);
     }
@@ -25,7 +30,8 @@ function render(game, onResolve) {
 
     function redraw() {
         clear(wrap);
-        wrap.appendChild(el("h3", { text: `Turn ${game.turnIndex + 1} of ${game.turns.length} — ${turn.date}` }));
+        wrap.appendChild(el("h3", { text: `Turn ${game.turnIndex + 1} of ${game.turns.length} — ${turn.date}` }, [t.btn]));
+        wrap.appendChild(t.body);
         wrap.appendChild(el("div", {
             class: "lever-label",
             text: `WHERE TO CAMPAIGN — ${POOL} effort points (remaining: ${remaining()})`

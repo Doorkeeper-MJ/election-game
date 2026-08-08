@@ -185,3 +185,18 @@ body {
 .qs-rules-link { color: var(--gold); }
 .qs-rules-link:hover { filter: brightness(1.15); }
 .qs-go { margin-top: 12px; }
+
+/* ---- Slice 4: static "?" tooltips ---- */
+.tip-btn {
+    width: 18px; height: 18px; border-radius: 50%; padding: 0; margin-left: 8px;
+    border: 1px solid var(--line); background: #141a22; color: var(--muted);
+    font-size: 11px; font-weight: 700; line-height: 1; cursor: pointer;
+    vertical-align: middle;
+}
+.tip-btn:hover { border-color: var(--gold); color: var(--gold); }
+.tip-body {
+    margin: 6px 0 8px; padding: 8px 10px; background: #141a22;
+    border-left: 3px solid var(--line); border-radius: 4px;
+    font-size: 12px; color: var(--muted); line-height: 1.5;
+}
+.tip-body.hidden { display: none; }

@@ -12,6 +12,7 @@
 
 const { el } = require("./dom.js");
 const client = require("../broadcast/client.js");
+const { tip } = require("./tip.js");
 
 // turnKey -> { announcer: {state,text}, advisor: {...}, commentator: {...} }
 const cache = {};
@@ -34,7 +35,10 @@ const LABELS = {
 
 function render(game, lastResult, rerender) {
     const wrap = el("div", { class: "panel broadcast" });
-    wrap.appendChild(el("h3", { text: "THE BROADCAST" }));
+    // DRAFT copy (Slice 4 tooltips) — pending MJ's pass.
+    const t = tip("Three optional voices. PLAY-BY-PLAY calls each result on its own; the ADVISOR and the COMMENTATOR speak when you ask. All three read only the game's real numbers. Off without an API key — and with one, the calls are billed to that key's account.");
+    wrap.appendChild(el("h3", { text: "THE BROADCAST" }, [t.btn]));
+    wrap.appendChild(t.body);
 
     // ---- no key: offer to set one, and keep the game fully playable ----
     if (!client.hasKey()) {
