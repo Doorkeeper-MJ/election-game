@@ -64,6 +64,24 @@ Why this is the largest of the four, honestly:
 
 **Consequence: a second engine alongside the frozen one, not an extension of it** — which also means a second set of acceptance baselines. Nothing here is v1.
 
+## Opponent-system cluster: opponent AI + dropouts + momentum runaway — ONE SYSTEM
+
+**Logged as a single cluster, deliberately.** The three pieces — opponent AI (spec below), dropout logic (Aug 7 seed #2 below), and momentum runaway (Aug 7 seed #3 below) — are one system: candidates exiting on money or viability, their support redistributing, and momentum behaving differently once opponents actually contest. **Designing any one alone will produce something that has to be rebuilt when the others land.** The Aug 7 sequencing note already said this for dropouts × momentum ("build them in one pass and re-baseline once"); this entry extends it to all three. The dropout and momentum write-ups stay where they are — this cluster references them, it does not duplicate them.
+
+### Opponent AI — deterministic heuristics in the engine, never LLM calls
+
+**Spec direction (MJ, 2026-08-08):** opponent AI is **deterministic heuristic code in the engine** — never LLM calls. The voices stay in the broadcast layer; opponents live in the engine, so **seed-locked replay and the unkeyed build both keep working.** Per-candidate **strategy profiles**: lane preference, resource style, competence rating, and a threshold for irrational persistence — so opponents play their own best game, and those games **differ in kind, not just quality.**
+
+This supersedes half of the July 27 verdict's reasoning: that entry assumed AI-driven (LLM/non-deterministic) opponents, and its "breaks Gate A, breaks the counterfactual" objection was about *non-determinism*. Deterministic heuristics moot that objection — a pure function of (state, seed) replays exactly, and the legibility counterfactual stays computable. What the July 27 entry got right and what still stands: the fairness-band design problem, and the scale of the work — for the structural reason below.
+
+### The finding that sizes this cluster (engine read, 2026-08-08)
+
+**Q: what do non-player candidates do each turn now? A: nothing.** There is no opponent decision anywhere. Per contest, every candidate is scored `polling·W_POLL + momentum·W_MOMENTUM + calib·W_ISSUE + seeded noise` (`model/engine.js:50-75`), and `model/engine.js:106` states the loop is "contests only (no actions/events/dropouts)". `polling` and `calib` are **frozen at season start** (`model/data-2016.js`); the only input that ever moves is `momentum`, fed back from contest results (`engine.js:84-104`). The only entity in the game that acts is the player, whose levers transiently touch **only their own** polling/calibration during resolution (`game/src/turnLoop.js:73-87`, `game/src/levers/`).
+
+**Q: so are outcomes opponent-driven or scripted? A: neither — they are *structurally* driven, with zero behavior in the loop.** Not scripted: results emerge from score competition, path-dependent momentum, and seeded dice, and the player's moves genuinely move outcomes (hands-off 18% vs both-levers 41% across 200 seeds). But every opponent's trajectory is fully determined by frozen initial conditions + the momentum feedback loop + dice.
+
+**Consequence — the one that matters:** opponent AI is **not an addition to the engine; it is a replacement for how 8 of 9 candidates' results are currently produced.** Giving opponents per-turn moves means their polling/emphasis inputs become dynamic, and the engine's entire calibration — validated against static inputs — is re-opened: Gate A baselines, the 200-seed sweeps, and the historical-fit judgment all have to be redone on top of the new behavior layer. **This cluster is a much bigger v2 than "add opponents" sounds, and that is now recorded as its true size.** It remains firmly v2 (arguably the successor's core), and per the standing rule above, none of it is built until v1 ships.
+
 # V2 SEEDS — captured 2026-08-07 (MJ playtest)
 
 Three items from MJ's **August 7, 2026** playtest of the 2016 GOP slice. Unlike the July 27 batch — mostly presentation and atmosphere — **all three are engine-level**. Each one touches the **frozen `model/`**, and therefore each one invalidates the acceptance baselines v1 rests on: Gate A's digit-for-digit identity at seed 20160201 (Trump 1327 / Cruz 978 / Carson 150 / Rubio 16) and the 200-seed balance sweep (hands-off 18% · emphasis-only 25.5% · effort-only 36% · both 41%). **That is the whole reason they are v2 and not v1** — the fix is small, the re-validation is not.

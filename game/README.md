@@ -47,10 +47,14 @@ To turn the broadcast on, click **Add key** in the broadcast panel and paste an 
 
 > ⚠️ **Not ship-safe for public release (Gate B).** A browser-direct API key is fine for a local, single-player tool used by the person who owns the key. It is **not** acceptable for a public or commercial build: anyone with the page can read the key out of localStorage, and calls are unmetered and unauthenticated. Shipping this publicly requires a server-side proxy that holds the key and rate-limits per user. Do not distribute a keyed build.
 
-<!-- DRAFT COPY (Slice 4, 2026-08-08) — structure locked, wording replaceable; see SLICE4_QUICKSTART.md "Copy status" -->
+<!-- Kept in sync with game/rules.html, the player-facing rendered version the
+     in-game modal links to (two audiences, two documents — decided by MJ
+     2026-08-08). If you edit one, edit both. Modal copy is FINAL (MJ pass
+     2026-08-08); this section has not had its own pass yet — see
+     SLICE4_QUICKSTART.md "Copy status". -->
 ## How the simulation works
 
-*For readers who want to understand the system before playing. Nothing here is needed to play — the in-game Quick Start covers what you control, and the broadcast voices narrate the rest as it happens. This is the deeper tour.*
+*For readers who want to understand the system before playing. Nothing here is needed to play — the in-game Quick Start covers what you control, and the broadcast voices narrate the rest as it happens. This is the deeper tour.* *(Players get this same content rendered in-browser at [`rules.html`](rules.html) — the Quick Start links there.)*
 
 **The race is a simulation, not a script.** Every game runs on a seeded random-number generator: a fresh seed each game, so no two races repeat — but the same seed always produces exactly the same race. That determinism is not a limitation, it's the foundation: it is what lets the game *prove* your effect (below) instead of asserting it.
 

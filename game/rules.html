@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>How the simulation works — The Primary</title>
+    <link rel="stylesheet" href="./css/newsroom.css">
+    <style>
+        /* rules-page-only layout; everything else inherits the newsroom theme */
+        .rules-wrap { max-width: 720px; margin: 0 auto; padding: 18px 18px 40px; }
+        .rules-wrap h1 { font-size: 18px; letter-spacing: 2px; margin: 18px 0 4px; }
+        .rules-wrap .rules-sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+        .rules-wrap section {
+            background: var(--panel); border: 1px solid var(--line);
+            border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;
+        }
+        .rules-wrap section h2 {
+            margin: 0 0 8px; font-size: 12px; letter-spacing: 1.5px; color: var(--gold);
+        }
+        .rules-wrap p { margin: 8px 0; font-size: 14px; line-height: 1.55; }
+        .rules-wrap .back { font-size: 13px; }
+        .rules-wrap .back a { color: var(--gold); }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <span class="brand">THE PRIMARY</span>
+        <span class="sub">HOW THE SIMULATION WORKS</span>
+    </header>
+
+    <!-- Player-facing rules page. Content kept in sync with game/README.md
+         "How the simulation works" (the technical front door for GitHub
+         visitors) — if you edit one, edit both. -->
+    <div class="rules-wrap">
+        <h1>HOW THE SIMULATION WORKS</h1>
+        <p class="rules-sub">For readers who want to understand the system before playing.
+            Nothing here is needed to play — the in-game Quick Start covers what you control,
+            and the broadcast voices narrate the rest as it happens. This is the deeper tour.</p>
+
+        <section>
+            <h2>THE RACE IS A SIMULATION, NOT A SCRIPT</h2>
+            <p>Every game runs on a seeded random-number generator: a fresh seed each game, so
+                no two races repeat — but the same seed always produces exactly the same race.
+                That determinism is not a limitation, it's the foundation: it is what lets the
+                game <em>prove</em> your effect (below) instead of asserting it.</p>
+        </section>
+
+        <section>
+            <h2>DELEGATES ARE WON UNDER THE 2016 RULES</h2>
+            <p>Each state awards its delegates in real calendar order under its real allocation
+                style — winner-take-all, proportional, or hybrid — with a viability threshold
+                that cuts off also-rans. The threshold matters more than it looks: in a crowded
+                field, most candidates spend most of the season below it. Watching who clears
+                it, where, is half the race.</p>
+        </section>
+
+        <section>
+            <h2>MOMENTUM IS REAL, AND IT COMPOUNDS</h2>
+            <p>Wins feed momentum; upsets pay far more than expected wins; and front-runners
+                bleed it just by being front-runners. The engine's momentum dynamics are the
+                reason a race can swing hard and then swing back — and the reason the
+                leaderboard on a given Tuesday is not the whole story. How exactly it behaves
+                is best discovered by playing; watch what the commentator notices when a
+                challenger starts closing on the leader.</p>
+        </section>
+
+        <section>
+            <h2>YOUR EFFECT IS MEASURED, NOT ESTIMATED</h2>
+            <p>Every turn, after the real contests resolve, the game silently re-runs the same
+                contests through the same engine with your moves removed — same seed, same
+                dice — and diffs the two. The gold readout is that diff. Two properties are
+                machine-gated: doing nothing measures exactly zero, and the measurement never
+                disturbs the live game.</p>
+        </section>
+
+        <section>
+            <h2>THE VOICES ARE CONSTRAINED</h2>
+            <p>All three broadcast voices read a single shared fact sheet built from live game
+                state plus those measured effects. They cannot cite a number the game didn't
+                produce — no path exists for one to reach them — and their prompts are
+                machine-checked to forbid inventing the things this game doesn't model: money,
+                fundraising, ads, endorsements, debates, scandals.</p>
+            <p>The advisor is written to be the loyal inside read; the commentator is usually
+                sharper but not an oracle — each turn he is deterministically set to a
+                <em>measured</em> or <em>bold</em> stance, and learning when to trust him is
+                part of the game.</p>
+        </section>
+
+        <section>
+            <h2>WHAT'S DETERMINISTIC</h2>
+            <p>Given a seed, everything — contest results, momentum, the commentator's
+                stance — except the AI voices' wording, which is generated fresh each time
+                from those fixed facts.</p>
+        </section>
+
+        <p class="back"><a href="./index.html">◀ Back to the game</a></p>
+    </div>
+</body>
+</html>

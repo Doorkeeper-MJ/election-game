@@ -61,10 +61,23 @@ works" section. One dismiss button. Re-openable from the `? HOW TO PLAY` header 
 
 ## Copy status
 
-**ALL player-facing copy in `src/ui/quickStart.js` and the README's "How the
-simulation works" section is DRAFT.** The structure is the deliverable of this build;
-final wording is a separate pass. The draft flag is repeated in a comment at the top
-of `quickStart.js` — remove both flags only when the copy pass lands.
+**Modal copy: FINAL — MJ's copy pass landed 2026-08-08** (four edits: Panel 1 no
+longer opens on a negation; Panel 3 "pick one issue to run on this turn, or stay
+broad"; Panel 4 standardized on "your moves"; Panel 5 billing line). Everything else
+approved as written. Wording changes now go through MJ.
+
+**README "How the simulation works" / `rules.html`: not yet through its own pass** —
+content stands, but MJ has not copy-passed it the way he did the modal.
+
+## Rules page (added 2026-08-08, MJ decision)
+
+The modal's footer links to **`game/rules.html`** — a plain static HTML page, no
+build step, same newsroom theme, works offline in the browser the player is already
+in. Reason: pointing players at a `.md` file opens raw markdown in Notepad. The
+README keeps the same content as **the technical front door for GitHub visitors** —
+**two audiences, two documents**, decided by MJ. Drift risk is real and accepted;
+both files carry an "edit one, edit both" sync comment. (Flagged against the vault's
+one-home rule at decision time; MJ ruled the two-audience split worth it.)
 
 ## Standard
 
