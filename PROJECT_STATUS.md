@@ -28,7 +28,7 @@
 
 ## What remains on v1 — three items
 
-1. **Slice 4** — menu/visual polish only. *(Quick Start modal ✅ 2026-08-08, copy FINAL after MJ's pass; "?" tooltips ✅ 2026-08-08, copy DRAFT; rules page `game/rules.html` ✅ — see `game/SLICE4_QUICKSTART.md`.)*
+1. **Slice 4 — ✅ COMPLETE 2026-08-08.** Quick Start modal (copy FINAL), "?" tooltips (copy FINAL), rules page `game/rules.html`, and the visual-polish pass (stale "v1 Slice 1" labels stripped from title/header, favicon added, help button legibility bump, turn-heading hierarchy fix). See `game/SLICE4_QUICKSTART.md`. **Two items judged out of the pass's scope and logged, not built:** (a) the full prototype newsroom port — scoreboard lower-third, tile map — is a layout redesign; the minimal theme is now the deliberate v1 look; (b) the advisor/commentator "ask" buttons render on turn 1 before any result exists — whether a pre-result ask degrades gracefully is untested behavior, not CSS, and needs its own look.
 2. **Sound** — Tiers 1/2/5 + Poll-Close Drumroll per `game/SOUND_SPEC.md`. Tiers 3–4 are parked to v2 (no events system exists in v1); the ship checklist must confirm **no Tier 4 path exists**.
 3. **Ship mechanics** — browser smoke-test + distribution.
 
@@ -36,9 +36,9 @@
 
 ## ▶ THE SINGLE NEXT ACTION
 
-**Slice 4, last piece: menu/visual polish** — port the newsroom look from the parked prototype (`styles/`, visual reference only) to taste, against the DoD standard: clear, not perfect; a standard nobody asked for is out of scope.
+**Sound** — Tiers 1/2/5 + Poll-Close Drumroll per `game/SOUND_SPEC.md`. Read that spec first; the ship checklist must confirm no Tier 4 path exists. *(Not started 2026-08-08 — explicit MJ instruction to hold.)*
 
-Separate small item, schedulable anytime: **MJ's copy pass** over the tooltip strings (`game/src/ui/tip.js` call sites) and the README "How the simulation works" / `rules.html` content — modal copy is already FINAL.
+Separate small item, schedulable anytime: **MJ's copy pass** over the README "How the simulation works" / `rules.html` content — the only player-facing copy without a pass; modal and tooltip copy are FINAL.
 
 - **After building:** `cd game && npm run build`, then `npm run gate:all` (all four must stay green), then commit — including the rebuilt `game/dist/app.js`. `?seed=NNNNNNNN` on the URL locks the seed for repeatable checks.
 

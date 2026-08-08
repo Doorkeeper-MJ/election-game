@@ -1,5 +1,7 @@
-/* newsroom.css — minimal dark theme for Slice 1. Visual polish (porting
-   the full newsroom look from the old scripts/ prototype) is Slice 4. */
+/* newsroom.css — the v1 dark newsroom theme. Slice 4's polish pass
+   (2026-08-08) kept this minimal look deliberately; the full prototype
+   newsroom port (scoreboard strip, tile map) is logged post-v1, not
+   pending. */
 
 :root {
     --bg: #11151c;
@@ -68,6 +70,9 @@ body {
 .cand-mo { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 
 /* turn panel */
+/* The turn/date heading is the player's "where am I" anchor — ink, not
+   muted, unlike the history panels (results stays muted by design). */
+.turn-panel h3 { color: var(--ink); font-weight: 700; }
 .lever-label { font-size: 12px; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
 .state-row { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 8px; padding: 3px 0; }
 .state-name { font-size: 13px; }
@@ -141,8 +146,8 @@ body {
 /* ---- Slice 4: Quick Start modal ---- */
 .qs-help {
     margin-left: auto; background: #1f2937; color: var(--ink);
-    border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px;
-    font-size: 11px; letter-spacing: 1px; font-weight: 700; cursor: pointer;
+    border: 1px solid #3a4757; border-radius: 4px; padding: 5px 12px;
+    font-size: 12px; letter-spacing: 1px; font-weight: 700; cursor: pointer;
 }
 .qs-help:hover { border-color: var(--gold); color: var(--gold); }
 /* dev-seed mode: the badge already carries margin-left:auto — don't double it */
