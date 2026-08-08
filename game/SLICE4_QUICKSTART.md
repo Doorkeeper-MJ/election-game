@@ -93,8 +93,14 @@ wind at a campaign's back right now) without teaching the mechanics; the results
 restates the counterfactual reading in one line (the modal carries the full
 explanation).
 
-**Tooltip copy: DRAFT — not yet through MJ's pass** (unlike the modal copy, which is
-FINAL). Flagged at each call site and in `tip.js`.
+**Tooltip copy: FINAL — MJ's pass landed 2026-08-08.** STANDINGS and results
+approved as written; the turn-panel tip rewritten into four beats (rendered as line
+breaks via `.tip-body`'s `white-space: pre-line`); the broadcast tip tightened, with
+its firing-behavior sentence **verified against the code before shipping** (the
+announcer auto-fires once per resolved turn when keyed; advisor and commentator are
+button-only — `broadcastPanel.js`). One deliberate two-homes case: *"the calls are
+billed to that key's account"* is verbatim in both the modal and the broadcast
+tooltip — sync comments at both sites, same arrangement as README ↔ `rules.html`.
 
 ## Standard
 

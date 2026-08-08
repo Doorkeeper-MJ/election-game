@@ -35,8 +35,13 @@ const LABELS = {
 
 function render(game, lastResult, rerender) {
     const wrap = el("div", { class: "panel broadcast" });
-    // DRAFT copy (Slice 4 tooltips) — pending MJ's pass.
-    const t = tip("Three optional voices. PLAY-BY-PLAY calls each result on its own; the ADVISOR and the COMMENTATOR speak when you ask. All three read only the game's real numbers. Off without an API key — and with one, the calls are billed to that key's account.");
+    // Copy FINAL (MJ pass 2026-08-08). The firing-behavior sentence was
+    // verified against this file's own logic (announcer auto-fires per
+    // resolved turn below; advisor/commentator are button-only).
+    // SYNC: "the calls are billed to that key's account" is kept VERBATIM
+    // in the Quick Start modal's broadcast panel (quickStart.js) — the
+    // match is intentional; if one changes, change both.
+    const t = tip("Three optional voices. PLAY-BY-PLAY calls each result on its own; the ADVISOR and the COMMENTATOR speak when you ask. All three read only the game's real numbers — they can't invent one. Off without an API key; with one, the calls are billed to that key's account.");
     wrap.appendChild(el("h3", { text: "THE BROADCAST" }, [t.btn]));
     wrap.appendChild(t.body);
 

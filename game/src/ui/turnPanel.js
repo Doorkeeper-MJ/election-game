@@ -20,8 +20,15 @@ function render(game, onResolve) {
     const POOL = CFG.EFFORT_POOL;
 
     // Created once, re-appended on each redraw so the open/closed state
-    // survives +/− clicks. DRAFT copy (Slice 4 tooltips) — pending MJ's pass.
-    const t = tip(`Your moves for this date, then RUN CONTEST(S). WHERE TO CAMPAIGN: + and − spread your ${POOL} effort points across the states voting today. WHAT TO EMPHASIZE: ○ picks one issue to press — "you" is your position, "mood" is the electorate's, 0–10. Both are optional; skip both to play it straight.`);
+    // survives +/− clicks. Copy FINAL (MJ pass 2026-08-08) — four beats,
+    // rendered as line breaks via .tip-body's white-space: pre-line.
+    const t = tip(`Your moves for this date, then RUN CONTEST(S).
+
+WHERE TO CAMPAIGN — spread your ${POOL} effort points across today's states with + and −.
+
+WHAT TO EMPHASIZE — ○ picks one issue to press. "You" is your position, "mood" is the electorate's, on a 0–10 scale.
+
+Both are optional. Skip them to play it straight.`);
 
     function used() {
         return Object.keys(moves.effort).reduce((s, k) => s + moves.effort[k], 0);

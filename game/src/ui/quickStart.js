@@ -78,6 +78,9 @@ function renderOverlay() {
         ]),
 
         // 5 — most players run unkeyed: an invitation, never a deficiency notice.
+        // SYNC: "the calls are billed to that key's account" is kept VERBATIM
+        // in the broadcast panel's tooltip (broadcastPanel.js) — the match is
+        // intentional; if one changes, change both.
         panel("THE BROADCAST", [
             line({ text: "Three voices can call your race — the live play-by-play, your own campaign advisor, and an outside TV commentator who is not on your payroll. Commentary brings the race to life: add an Anthropic API key in the broadcast panel to hear them." }),
             line({ class: "qs-line quiet", text: "The game is complete without a key. With one, the calls are billed to that key's account." })

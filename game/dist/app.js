@@ -641,6 +641,9 @@
             line({ text: "If your push flipped a state's winner, it says so. No line means a hands-off turn." })
           ]),
           // 5 — most players run unkeyed: an invitation, never a deficiency notice.
+          // SYNC: "the calls are billed to that key's account" is kept VERBATIM
+          // in the broadcast panel's tooltip (broadcastPanel.js) — the match is
+          // intentional; if one changes, change both.
           panel("THE BROADCAST", [
             line({ text: "Three voices can call your race \u2014 the live play-by-play, your own campaign advisor, and an outside TV commentator who is not on your payroll. Commentary brings the race to life: add an Anthropic API key in the broadcast panel to hear them." }),
             line({ class: "qs-line quiet", text: "The game is complete without a key. With one, the calls are billed to that key's account." })
@@ -742,7 +745,13 @@
         const wrap = el("div", { class: "panel turn-panel" });
         const moves = { effort: {}, emphasis: null };
         const POOL = CFG2.EFFORT_POOL;
-        const t = tip(`Your moves for this date, then RUN CONTEST(S). WHERE TO CAMPAIGN: + and \u2212 spread your ${POOL} effort points across the states voting today. WHAT TO EMPHASIZE: \u25CB picks one issue to press \u2014 "you" is your position, "mood" is the electorate's, 0\u201310. Both are optional; skip both to play it straight.`);
+        const t = tip(`Your moves for this date, then RUN CONTEST(S).
+
+WHERE TO CAMPAIGN \u2014 spread your ${POOL} effort points across today's states with + and \u2212.
+
+WHAT TO EMPHASIZE \u2014 \u25CB picks one issue to press. "You" is your position, "mood" is the electorate's, on a 0\u201310 scale.
+
+Both are optional. Skip them to play it straight.`);
         function used() {
           return Object.keys(moves.effort).reduce((s, k) => s + moves.effort[k], 0);
         }
@@ -1261,7 +1270,7 @@ ${FORMAT_RULE}`;
       };
       function render(game2, lastResult2, rerender) {
         const wrap = el("div", { class: "panel broadcast" });
-        const t = tip("Three optional voices. PLAY-BY-PLAY calls each result on its own; the ADVISOR and the COMMENTATOR speak when you ask. All three read only the game's real numbers. Off without an API key \u2014 and with one, the calls are billed to that key's account.");
+        const t = tip("Three optional voices. PLAY-BY-PLAY calls each result on its own; the ADVISOR and the COMMENTATOR speak when you ask. All three read only the game's real numbers \u2014 they can't invent one. Off without an API key; with one, the calls are billed to that key's account.");
         wrap.appendChild(el("h3", { text: "THE BROADCAST" }, [t.btn]));
         wrap.appendChild(t.body);
         if (!client.hasKey()) {

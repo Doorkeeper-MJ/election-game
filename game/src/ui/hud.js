@@ -9,7 +9,7 @@ function render(game) {
     const sorted = game.field.slice().sort((a, b) => b.delegates - a.delegates);
     const leader = sorted[0];
 
-    // DRAFT copy (Slice 4 tooltips) — pending MJ's pass.
+    // Copy FINAL (MJ pass 2026-08-08, approved as written).
     const t = tip(`Everyone in the race, sorted by delegates. "del" is delegates won — first to ${game.clinch} clinches the nomination. "mo" is momentum: the wind at a campaign's back (or in its face) right now. ▶ marks you.`);
     wrap.appendChild(el("h2", { text: "STANDINGS" }, [t.btn]));
     wrap.appendChild(t.body);

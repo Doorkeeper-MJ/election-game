@@ -5,8 +5,10 @@
    GOVERNING PRINCIPLE (SLICE4_QUICKSTART.md): a tip explains what is
    ON SCREEN in its panel — never what the engine does in reply.
 
-   Copy status: DRAFT — tooltip strings (passed in by each panel) have
-   not been through MJ's copy pass yet. */
+   Copy status: FINAL — all four tooltip strings (passed in by each
+   panel) went through MJ's copy pass 2026-08-08. Wording changes go
+   through MJ. Multi-beat tips rely on .tip-body's white-space:
+   pre-line, which renders embedded newlines as line breaks. */
 
 const { el } = require("./dom.js");
 

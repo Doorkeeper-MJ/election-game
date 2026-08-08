@@ -37,7 +37,7 @@ function render(lastResult, game) {
     const playerName = player ? player.name : null;
 
     const wrap = el("div", { class: "panel results" });
-    // DRAFT copy (Slice 4 tooltips) — pending MJ's pass.
+    // Copy FINAL (MJ pass 2026-08-08, approved as written).
     const t = tip("Each line: the state, the delegates it carried, and who won them. The gold ↳ line is the measured effect of your moves — your delegates with them versus without, same contest, same dice. ⚡ means your moves changed who won the state.");
     wrap.appendChild(el("h3", { text: `Results — ${lastResult.date}` }, [t.btn]));
     wrap.appendChild(t.body);
