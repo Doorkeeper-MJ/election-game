@@ -74,7 +74,7 @@ function renderOverlay() {
         panel("THE GOLD READOUT", [
             line({ text: "After each contest, the gold line measures what your moves actually changed — your delegates with them versus without, same contest, same dice:" }),
             el("div", { class: "qs-example", text: "↳ your moves here: Cruz +2 (16 vs 14) · Trump −2" }),
-            line({ text: "If your push flipped a state's winner, it says so. No line means a hands-off turn." })
+            line({ text: "If your push flipped a state's winner, it says so. No line means you made no moves this turn." })
         ]),
 
         // 5 — most players run unkeyed: an invitation, never a deficiency notice.

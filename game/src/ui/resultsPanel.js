@@ -42,6 +42,15 @@ function render(lastResult, game) {
     wrap.appendChild(el("h3", { text: `Results — ${lastResult.date}` }, [t.btn]));
     wrap.appendChild(t.body);
 
+    // Three states to distinguish (copy set by MJ 2026-08-08):
+    //   1. no moves made            -> hands-off line
+    //   2. moves made, effect != 0  -> the gold line (unchanged)
+    //   3. moves made, effect == 0  -> explicit zero line, never mislabeled
+    //      as hands-off (a real push CAN measure zero; the gates only
+    //      guarantee the converse — zero moves always measure zero).
+    const pm = lastResult.playerMoves || null;
+    const movesMade = pm ? pm.any : null; // null = pre-playerMoves result (legacy)
+
     let pushedAnywhere = false;
     let netPlayerDelta = 0;
 
@@ -58,7 +67,20 @@ function render(lastResult, game) {
         const fx = c.effect;
         if (!fx || !fx.deltas) continue;
         const anyDelta = fx.deltas.some(d => d.delta !== 0);
-        if (!anyDelta) continue;
+
+        // Did the player's moves apply to THIS contest? Effort is per-state;
+        // emphasis is turn-wide, so it touches every contest on the date.
+        const movesHere = pm && (pm.effort[c.state] > 0 || pm.emphasis !== null);
+
+        if (!anyDelta) {
+            if (movesHere) {
+                wrap.appendChild(el("div", {
+                    class: "effect-zero",
+                    text: "Your moves here: no measurable change this contest."
+                }));
+            }
+            continue;
+        }
 
         pushedAnywhere = true;
         if (playerName) {
@@ -88,10 +110,10 @@ function render(lastResult, game) {
             class: "effect-summary",
             text: `Net effect of your moves this turn: ${lastName(playerName)} ${sign}${Math.abs(netPlayerDelta)} delegates`
         }));
-    } else if (!pushedAnywhere) {
+    } else if (movesMade === false || (movesMade === null && !pushedAnywhere)) {
         wrap.appendChild(el("div", {
             class: "effect-none",
-            text: "Hands-off turn — baseline result, no push measured."
+            text: "Hands-off turn — baseline result, no moves made."
         }));
     }
 

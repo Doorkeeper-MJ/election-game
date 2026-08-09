@@ -54,7 +54,26 @@ function leaderOf(field) {
 function resolveTurn(game, moves) {
     const turn = game.turns[game.turnIndex];
     const player = game.field.find(c => c.id === game.playerId);
-    const result = { date: turn.date, contests: [] };
+
+    // What the player actually DID this turn (additive; the readout needs it
+    // to distinguish "no moves" from "moves that measured zero"). Effort
+    // entries are kept only where points were actually spent.
+    const effortSpent = {};
+    if (moves && moves.effort) {
+        for (const s of Object.keys(moves.effort)) {
+            if (moves.effort[s] > 0) effortSpent[s] = moves.effort[s];
+        }
+    }
+    const emphasisChosen = moves != null && moves.emphasis != null ? moves.emphasis : null;
+    const result = {
+        date: turn.date,
+        contests: [],
+        playerMoves: {
+            effort: effortSpent,
+            emphasis: emphasisChosen,
+            any: Object.keys(effortSpent).length > 0 || emphasisChosen !== null
+        }
+    };
 
     // INVARIANT (resolution order): contests resolve in calendar2016 array-index
     // order. turn.contests preserves that order, and turns are consecutive slices

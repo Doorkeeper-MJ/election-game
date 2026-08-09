@@ -473,7 +473,22 @@
       function resolveTurn2(game2, moves) {
         const turn = game2.turns[game2.turnIndex];
         const player = game2.field.find((c) => c.id === game2.playerId);
-        const result = { date: turn.date, contests: [] };
+        const effortSpent = {};
+        if (moves && moves.effort) {
+          for (const s of Object.keys(moves.effort)) {
+            if (moves.effort[s] > 0) effortSpent[s] = moves.effort[s];
+          }
+        }
+        const emphasisChosen = moves != null && moves.emphasis != null ? moves.emphasis : null;
+        const result = {
+          date: turn.date,
+          contests: [],
+          playerMoves: {
+            effort: effortSpent,
+            emphasis: emphasisChosen,
+            any: Object.keys(effortSpent).length > 0 || emphasisChosen !== null
+          }
+        };
         for (const contest of turn.contests) {
           const rngState = game2.rng.getState();
           const preField = game2.field.map((c) => ({ ...c }));
@@ -638,7 +653,7 @@
           panel("THE GOLD READOUT", [
             line({ text: "After each contest, the gold line measures what your moves actually changed \u2014 your delegates with them versus without, same contest, same dice:" }),
             el("div", { class: "qs-example", text: "\u21B3 your moves here: Cruz +2 (16 vs 14) \xB7 Trump \u22122" }),
-            line({ text: "If your push flipped a state's winner, it says so. No line means a hands-off turn." })
+            line({ text: "If your push flipped a state's winner, it says so. No line means you made no moves this turn." })
           ]),
           // 5 — most players run unkeyed: an invitation, never a deficiency notice.
           // SYNC: "the calls are billed to that key's account" is kept VERBATIM
@@ -863,6 +878,8 @@ Both are optional. Skip them to play it straight.`);
         const t = tip("Each line: the state, the delegates it carried, and who won them. The gold \u21B3 line is the measured effect of your moves \u2014 your delegates with them versus without, same contest, same dice. \u26A1 means your moves changed who won the state.");
         wrap.appendChild(el("h3", { text: `Results \u2014 ${lastResult2.date}` }, [t.btn]));
         wrap.appendChild(t.body);
+        const pm = lastResult2.playerMoves || null;
+        const movesMade = pm ? pm.any : null;
         let pushedAnywhere = false;
         let netPlayerDelta = 0;
         for (const c of lastResult2.contests) {
@@ -874,7 +891,16 @@ Both are optional. Skip them to play it straight.`);
           const fx = c.effect;
           if (!fx || !fx.deltas) continue;
           const anyDelta = fx.deltas.some((d) => d.delta !== 0);
-          if (!anyDelta) continue;
+          const movesHere = pm && (pm.effort[c.state] > 0 || pm.emphasis !== null);
+          if (!anyDelta) {
+            if (movesHere) {
+              wrap.appendChild(el("div", {
+                class: "effect-zero",
+                text: "Your moves here: no measurable change this contest."
+              }));
+            }
+            continue;
+          }
           pushedAnywhere = true;
           if (playerName) {
             const mine = fx.deltas.find((d) => d.name === playerName);
@@ -898,10 +924,10 @@ Both are optional. Skip them to play it straight.`);
             class: "effect-summary",
             text: `Net effect of your moves this turn: ${lastName(playerName)} ${sign}${Math.abs(netPlayerDelta)} delegates`
           }));
-        } else if (!pushedAnywhere) {
+        } else if (movesMade === false || movesMade === null && !pushedAnywhere) {
           wrap.appendChild(el("div", {
             class: "effect-none",
-            text: "Hands-off turn \u2014 baseline result, no push measured."
+            text: "Hands-off turn \u2014 baseline result, no moves made."
           }));
         }
         return wrap;

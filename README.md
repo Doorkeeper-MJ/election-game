@@ -4,7 +4,21 @@ A turn-based simulation of the 2016 Republican presidential primary, wrapped aro
 
 **Scope, stated up front: this is the 2016 Republican primary only.** Not a general election, not a two-party simulator, and not the Democratic side. It runs from the first contest to the nomination and stops there. *(A Democratic primary is banked to v2 — proportional allocation and superdelegates are a second rules engine, not a reskin. A parked 2024 two-party general-election prototype also lives in this repo; see the layout table.)*
 
-Runs from the filesystem. No server, no backend, no install beyond one build step.
+## Play it
+
+1. Download the ZIP (green **Code** button → **Download ZIP**)
+2. **Extract the ZIP — don't open it from inside the archive**
+3. Double-click `index.html`
+
+No install, no build, no server. It runs in your browser.
+
+Each turn: one calendar date, three effort points to allocate, one optional issue axis. Clinch 1,237 delegates or lead when the calendar runs out.
+
+### The broadcast is optional
+
+The game is fully playable with the AI voices off, which is the default. Enabling them requires your own Anthropic API key, held in browser `localStorage`, and **it bills your account.**
+
+> ⚠️ **A keyed build is for local personal use only.** A browser-direct API key is acceptable when the only person loading the page is the person who owns the key. It is not safe for public or commercial distribution: the key is readable out of `localStorage`, and calls are unmetered and unauthenticated. A public deployment needs a server-side proxy holding the key with per-user rate limiting — a backend, and a different project. **Distribute unkeyed.**
 
 ---
 
@@ -93,7 +107,9 @@ Balance decisions are made by sweep, not by single playthrough — an early sing
 
 ---
 
-## Running it
+## For developers
+
+The repo ships the prebuilt bundle (`game/dist/app.js`) — playing needs no tooling. To rebuild after changing `game/src/` or `model/`:
 
 ```bash
 cd game
@@ -101,15 +117,7 @@ npm install     # first time only
 npm run build   # bundles play layer + frozen engine into game/dist/app.js
 ```
 
-Then open `index.html` at the repository root. Blank page means the build step hasn't run.
-
-Each turn: one calendar date, three effort points to allocate, one optional issue axis. Clinch 1,237 delegates or lead when the calendar runs out.
-
-### The broadcast is optional
-
-The game is fully playable with the AI voices off, which is the default. Enabling them requires your own Anthropic API key, held in browser `localStorage`, and **it bills your account.**
-
-> ⚠️ **A keyed build is for local personal use only.** A browser-direct API key is acceptable when the only person loading the page is the person who owns the key. It is not safe for public or commercial distribution: the key is readable out of `localStorage`, and calls are unmetered and unauthenticated. A public deployment needs a server-side proxy holding the key with per-user rate limiting — a backend, and a different project. **Distribute unkeyed.**
+A blank page means the bundle is missing or stale — rebuild. Full developer detail, gates, and the `?seed=` lock: [`game/README.md`](game/README.md).
 
 ---
 

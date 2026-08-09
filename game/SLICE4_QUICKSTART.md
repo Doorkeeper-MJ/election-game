@@ -64,7 +64,10 @@ works" section. One dismiss button. Re-openable from the `? HOW TO PLAY` header 
 **Modal copy: FINAL — MJ's copy pass landed 2026-08-08** (four edits: Panel 1 no
 longer opens on a negation; Panel 3 "pick one issue to run on this turn, or stay
 broad"; Panel 4 standardized on "your moves"; Panel 5 billing line). Everything else
-approved as written. Wording changes now go through MJ.
+approved as written. Wording changes now go through MJ. *(One later MJ edit, same
+day, ship-mechanics pass: Panel 4's closing sentence became "No line means you made
+no moves this turn" — part of the three-state readout fix, where a real push that
+measures zero gets its own line instead of being mislabeled hands-off.)*
 
 **README "How the simulation works" / `rules.html`: not yet through its own pass** —
 content stands, but MJ has not copy-passed it the way he did the modal.

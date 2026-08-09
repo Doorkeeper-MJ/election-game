@@ -6,16 +6,13 @@ Play the 2016 Republican primary as any candidate in the field, making two real 
 
 **Scope: the 2016 Republican primary only** — not a general election, not a two-party simulator, not the Democratic side. It runs to the nomination and stops. A Democratic primary is banked to v2 in `../FUTURE_FEATURES.md`.
 
-## Run it
+## Play it
 
-```bash
-npm install          # first time only
-npm run build        # bundles src/ + frozen model/ into dist/app.js
-```
+1. Download the ZIP (green **Code** button → **Download ZIP**)
+2. **Extract the ZIP — don't open it from inside the archive**
+3. Double-click `index.html`
 
-Then double-click `index.html` — **no server needed.** The bundle is a plain IIFE and every asset path is relative, so it runs straight from a `file://` origin (confirmed in a full keyed playtest, 2026-08-07). Double-clicking `../index.html` at the repo root lands here too.
-
-Append `?seed=NNNNNNNN` to the URL to lock the seed for repeatable playtests — a dev badge appears when you do.
+No install, no build, no server. It runs in your browser.
 
 First launch opens a **Quick Start** overlay covering what you control; re-open it any time from **? HOW TO PLAY** in the header.
 
@@ -67,6 +64,19 @@ To turn the broadcast on, click **Add key** in the broadcast panel and paste an 
 **The voices are constrained.** All three broadcast voices read a single shared fact sheet built from live game state plus those measured effects. They cannot cite a number the game didn't produce — no path exists for one to reach them — and their prompts are machine-checked to forbid inventing the things this game doesn't model: money, fundraising, ads, endorsements, debates, scandals. The advisor is written to be the loyal inside read; the commentator is usually sharper but not an oracle — each turn he is deterministically set to a *measured* or *bold* stance, and learning when to trust him is part of the game.
 
 **What's deterministic:** given a seed, everything — contest results, momentum, the commentator's stance — except the AI voices' wording, which is generated fresh each time from those fixed facts.
+
+## For developers
+
+The repo ships the prebuilt bundle (`dist/app.js`), so playing needs no tooling. To rebuild after changing `src/` or `../model/`:
+
+```bash
+npm install          # first time only
+npm run build        # bundles src/ + frozen model/ into dist/app.js
+```
+
+The bundle is a plain IIFE and every asset path is relative, so the page runs straight from a `file://` origin — no server (confirmed in a full keyed playtest, 2026-08-07). Double-clicking `../index.html` at the repo root lands here too.
+
+Append `?seed=NNNNNNNN` to the URL to lock the seed for repeatable playtests — a dev badge appears when you do.
 
 ## Gates
 

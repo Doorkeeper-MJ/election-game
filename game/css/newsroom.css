@@ -99,6 +99,10 @@ body {
 .effect-line {
     margin: 2px 0 6px 14px; font-size: 13px; color: var(--gold);
 }
+/* moves made, measured zero — stated plainly, but muted: it is not a result */
+.effect-zero {
+    margin: 2px 0 6px 14px; font-size: 13px; color: var(--muted);
+}
 .effect-flip {
     margin: 0 0 8px 14px; font-size: 13px; font-weight: 700; color: #ffd76a;
 }
