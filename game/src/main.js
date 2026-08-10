@@ -13,6 +13,7 @@ const CFG = require("./config-play.js");
 const { clear } = require("./ui/dom.js");
 const candidateSelect = require("./ui/candidateSelect.js");
 const quickStart = require("./ui/quickStart.js");
+const sound = require("./ui/sound.js");
 const hud = require("./ui/hud.js");
 const turnPanel = require("./ui/turnPanel.js");
 const resultsPanel = require("./ui/resultsPanel.js");
@@ -58,10 +59,16 @@ function showSeedBadge() {
 }
 
 function onResolve(moves) {
+    // Engine resolves instantly (audio never touches turnLoop — the gates
+    // drive it headlessly in Node). The Poll-Close Drumroll holds only the
+    // REVEAL: results render when the riser lands. Muted -> no delay.
     lastResult = resolveTurn(game, moves);
     evaluateEnd(game);
-    if (game.phase === "concluded") renderEnd();
-    else renderPlay();
+    sound.drumroll(() => {
+        sound.turnSounds(game, lastResult);   // one tier max per batch, highest wins
+        if (game.phase === "concluded") renderEnd();
+        else renderPlay();
+    });
 }
 
 function renderSelect() {
@@ -90,6 +97,7 @@ function renderEnd() {
 function boot() {
     showSeedBadge();
     quickStart.install();   // header "? HOW TO PLAY" button + first-launch auto-open (after badge — CSS expects badge-then-button order)
+    sound.install();        // header mute toggle, after the help button
     renderSelect();
 }
 

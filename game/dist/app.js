@@ -694,6 +694,193 @@
     }
   });
 
+  // src/ui/sound.js
+  var require_sound = __commonJS({
+    "src/ui/sound.js"(exports, module) {
+      var MASTER_VOL = 0.6;
+      var DRUMROLL_S = 1.8;
+      var MUTE_KEY = "egv1.muted";
+      var ctx = null;
+      var master = null;
+      var disabled = false;
+      var muted = readMuted();
+      var endPlayedFor = null;
+      function readMuted() {
+        try {
+          return sessionStorage.getItem(MUTE_KEY) === "1";
+        } catch (e) {
+          return false;
+        }
+      }
+      function storeMuted(m) {
+        try {
+          sessionStorage.setItem(MUTE_KEY, m ? "1" : "0");
+        } catch (e) {
+        }
+      }
+      function ensureCtx() {
+        if (disabled) return null;
+        if (!ctx) {
+          try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            ctx = new AC();
+            master = ctx.createGain();
+            master.gain.value = muted ? 0 : MASTER_VOL;
+            master.connect(ctx.destination);
+          } catch (e) {
+            disabled = true;
+            return null;
+          }
+        }
+        if (ctx.state === "suspended") {
+          try {
+            ctx.resume();
+          } catch (e) {
+          }
+        }
+        return ctx;
+      }
+      function tone(freq, endFreq, type, t0, dur, peak, attack) {
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, t0);
+        if (endFreq && endFreq !== freq) o.frequency.exponentialRampToValueAtTime(endFreq, t0 + dur);
+        g.gain.setValueAtTime(1e-4, t0);
+        g.gain.exponentialRampToValueAtTime(peak, t0 + (attack || 0.01));
+        g.gain.exponentialRampToValueAtTime(1e-4, t0 + dur);
+        o.connect(g);
+        g.connect(master);
+        o.start(t0);
+        o.stop(t0 + dur + 0.05);
+      }
+      function noiseSwell(t0, dur, peak) {
+        var len = Math.ceil(ctx.sampleRate * dur);
+        var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+        var d = buf.getChannelData(0);
+        for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+        var src = ctx.createBufferSource();
+        src.buffer = buf;
+        var f = ctx.createBiquadFilter();
+        f.type = "bandpass";
+        f.Q.value = 0.8;
+        f.frequency.setValueAtTime(300, t0);
+        f.frequency.exponentialRampToValueAtTime(1400, t0 + dur);
+        var g = ctx.createGain();
+        g.gain.setValueAtTime(1e-4, t0);
+        g.gain.exponentialRampToValueAtTime(peak, t0 + dur * 0.85);
+        g.gain.exponentialRampToValueAtTime(1e-4, t0 + dur);
+        src.connect(f);
+        f.connect(g);
+        g.connect(master);
+        src.start(t0);
+        src.stop(t0 + dur + 0.05);
+      }
+      var cues = {
+        // Tier 1 — soft blip, <0.5s, subliminal
+        tick: function(t) {
+          tone(1250, 900, "square", t, 0.05, 0.1);
+        },
+        // Tier 2 — single clean note, ~1s
+        chime: function(t) {
+          tone(988, null, "sine", t, 0.9, 0.22);
+          tone(1976, null, "sine", t, 0.45, 0.06);
+        },
+        // Poll-Close Drumroll — riser + closing thump
+        drumroll: function(t) {
+          noiseSwell(t, DRUMROLL_S - 0.15, 0.2);
+          tone(100, 240, "sine", t, DRUMROLL_S - 0.2, 0.1, 0.3);
+          tone(170, 55, "sine", t + DRUMROLL_S - 0.15, 0.16, 0.35);
+        },
+        // Tier 5a — placeholder fanfare (Doorkeeper Original Music replaces post-ship)
+        fanfare: function(t) {
+          var notes = [262, 330, 392, 523];
+          for (var i = 0; i < notes.length; i++) {
+            tone(notes[i], null, "sawtooth", t + i * 0.13, 0.5, 0.1);
+          }
+          for (var j = 0; j < notes.length; j++) {
+            tone(notes[j], null, "sawtooth", t + 0.6, 2.2, 0.09, 0.08);
+            tone(notes[j] * 1.005, null, "sawtooth", t + 0.6, 2.2, 0.05, 0.08);
+          }
+        },
+        // Tier 5b — low, minor, decaying
+        somber: function(t) {
+          tone(110, null, "triangle", t, 2.6, 0.16, 0.25);
+          tone(130.8, null, "triangle", t, 2.6, 0.12, 0.3);
+          tone(164.8, null, "triangle", t, 2.2, 0.1, 0.35);
+        }
+      };
+      function play(name) {
+        if (muted || disabled) return;
+        if (!ensureCtx()) return;
+        try {
+          cues[name](ctx.currentTime + 0.02);
+        } catch (e) {
+        }
+      }
+      function drumroll(reveal) {
+        if (muted || disabled || !ensureCtx()) {
+          reveal();
+          return;
+        }
+        play("drumroll");
+        setTimeout(reveal, DRUMROLL_S * 1e3);
+      }
+      function turnSounds(game2, lastResult2) {
+        if (!lastResult2) return;
+        if (game2.phase === "concluded") {
+          if (endPlayedFor === game2) return;
+          endPlayedFor = game2;
+          var won = game2.nominee && game2.nominee.id === game2.playerId;
+          play(won ? "fanfare" : "somber");
+          return;
+        }
+        var player = null;
+        for (var i = 0; i < game2.field.length; i++) {
+          if (game2.field[i].id === game2.playerId) {
+            player = game2.field[i];
+          }
+        }
+        var pm = lastResult2.playerMoves || null;
+        var chime = false, tick = false;
+        for (var c = 0; c < lastResult2.contests.length; c++) {
+          var contest = lastResult2.contests[c];
+          if (contest.awards && contest.awards.length) tick = true;
+          if (pm && player && pm.effort[contest.state] > 0) {
+            for (var a = 0; a < contest.awards.length; a++) {
+              if (contest.awards[a].name === player.name && contest.awards[a].delegates > 0) chime = true;
+            }
+          }
+        }
+        if (chime) play("chime");
+        else if (tick) play("tick");
+      }
+      function isMuted() {
+        return muted;
+      }
+      function setMuted(m) {
+        muted = m;
+        storeMuted(m);
+        if (master) master.gain.value = m ? 0 : MASTER_VOL;
+      }
+      function install() {
+        var bar = document.querySelector(".topbar");
+        if (!bar || document.getElementById("snd-toggle")) return;
+        var btn = document.createElement("button");
+        btn.id = "snd-toggle";
+        btn.className = "snd-toggle";
+        btn.setAttribute("aria-label", "Mute or unmute sound");
+        btn.textContent = muted ? "\u{1F507}" : "\u{1F50A}";
+        btn.addEventListener("click", function() {
+          setMuted(!muted);
+          btn.textContent = muted ? "\u{1F507}" : "\u{1F50A}";
+        });
+        bar.appendChild(btn);
+      }
+      module.exports = { install, drumroll, turnSounds, isMuted, setMuted };
+    }
+  });
+
   // src/ui/tip.js
   var require_tip = __commonJS({
     "src/ui/tip.js"(exports, module) {
@@ -1451,6 +1638,7 @@ ${FORMAT_RULE}`;
   var { clear } = require_dom();
   var candidateSelect = require_candidateSelect();
   var quickStart = require_quickStart();
+  var sound = require_sound();
   var hud = require_hud();
   var turnPanel = require_turnPanel();
   var resultsPanel = require_resultsPanel();
@@ -1487,8 +1675,11 @@ ${FORMAT_RULE}`;
   function onResolve(moves) {
     lastResult = resolveTurn(game, moves);
     evaluateEnd(game);
-    if (game.phase === "concluded") renderEnd();
-    else renderPlay();
+    sound.drumroll(() => {
+      sound.turnSounds(game, lastResult);
+      if (game.phase === "concluded") renderEnd();
+      else renderPlay();
+    });
   }
   function renderSelect() {
     const r = root();
@@ -1514,6 +1705,7 @@ ${FORMAT_RULE}`;
   function boot() {
     showSeedBadge();
     quickStart.install();
+    sound.install();
     renderSelect();
   }
   if (document.readyState === "loading") {

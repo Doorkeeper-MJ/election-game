@@ -157,6 +157,14 @@ body {
 /* dev-seed mode: the badge already carries margin-left:auto — don't double it */
 .seed-badge + .qs-help { margin-left: 10px; }
 
+/* ---- Sound: header mute toggle (single master control, always visible) ---- */
+.snd-toggle {
+    margin-left: 8px; background: #1f2937;
+    border: 1px solid #3a4757; border-radius: 4px; padding: 4px 9px;
+    font-size: 13px; line-height: 1; cursor: pointer;
+}
+.snd-toggle:hover { border-color: var(--gold); }
+
 .qs-overlay {
     position: fixed; inset: 0; z-index: 50; background: rgba(8, 11, 16, 0.78);
     display: flex; align-items: flex-start; justify-content: center;

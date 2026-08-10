@@ -1,6 +1,6 @@
 # Election Game — Sound Integration Spec (v1 ship feature)
 
-**Status:** Spec banked July 2026. **NOT built yet.** Build order: **after Slice 2 (legibility).** Design doctrine by MJ, July 13, 2026.
+**Status:** v1 tiers **BUILT 2026-08-10** — Tiers 1/2/5 + Poll-Close Drumroll live in `game/src/ui/sound.js`, WebAudio-synthesized (no audio files, no fetch — works unkeyed and from `file://` by construction; the Sourcing section below is superseded for v1, kept for the v2 tiers). Hooks live in `main.js`, NOT `turnLoop`/`evaluateEnd` as originally written here — those are pure functions the gates drive headlessly in Node, so audio there would break `gate:all`. Tiers 3/4 remain **PARKED to v2**; no cue for them exists in the code. The 5a fanfare is the documented placeholder awaiting the Doorkeeper Original Music sting — swap `cues.fanfare` in the registry. Design doctrine by MJ, July 13, 2026.
 
 **Design doctrine (MJ — preserved verbatim):** *Sound = information hierarchy for the ears; the rarer the sound, the more power it keeps.*
 
