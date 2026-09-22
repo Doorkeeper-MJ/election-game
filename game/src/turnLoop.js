@@ -12,6 +12,16 @@
    End-condition policy (clinch / calendar-exhausted) lives in
    evaluateEnd, kept SEPARATE from resolution so the gate can resolve
    the full calendar exactly as runPrimary does.
+
+   v2 step 0: contests draw from game.dice.contest (the v1 generator
+   under its new name). game.profile says which cluster subsystems are
+   live; at step 0 none exist, so resolveTurn reads no flag yet. The
+   cluster hooks land here, step by step, each gated on its flag:
+     step 1  profile.money          effort budget from funds
+     step 2  profile.dropouts       exits + redistribution (before contests)
+     step 2  profile.momentumBrake  leader floor + band (after momentum)
+     step 3  profile.events         the event draw — game.dice.event(turnIndex)
+     step 4  profile.opponentMoves  opponent allocation — game.dice.opponent(turnIndex)
    ============================================================ */
 
 const { awardDelegates, processContestMomentum } = require("../../model/engine.js");
@@ -54,6 +64,7 @@ function leaderOf(field) {
 function resolveTurn(game, moves) {
     const turn = game.turns[game.turnIndex];
     const player = game.field.find(c => c.id === game.playerId);
+    const dice = game.dice.contest;   // the ONE contest stream (see gameState.newGame)
 
     // What the player actually DID this turn (additive; the readout needs it
     // to distinguish "no moves" from "moves that measured zero"). Effort
@@ -67,6 +78,7 @@ function resolveTurn(game, moves) {
     const emphasisChosen = moves != null && moves.emphasis != null ? moves.emphasis : null;
     const result = {
         date: turn.date,
+        profile: game.profile.name,
         contests: [],
         playerMoves: {
             effort: effortSpent,
@@ -79,14 +91,15 @@ function resolveTurn(game, moves) {
     // order. turn.contests preserves that order, and turns are consecutive slices
     // of the calendar, so iterating turns then turn.contests == iterating the raw
     // calendar. Date-grouping is DISPLAY ONLY and must never reorder resolution.
-    // INVARIANT (rng): the SAME game.rng instance (created once in newGame) is
-    // passed to every awardDelegates call here — never re-seeded per turn/contest.
+    // INVARIANT (dice): the SAME game.dice.contest instance (created once in
+    // newGame) is passed to every awardDelegates call here — never re-seeded per
+    // turn/contest, and never touched by the event/opponent streams.
     for (const contest of turn.contests) {
         // LEGIBILITY COUNTERFACTUAL (Slice 2) — snapshot BEFORE any player
         // transient: the dice position (getState is a read; zero draws) and a
         // shallow clone of the pre-effort field. Both are for the counterfactual
         // run only; the real game never touches them.
-        const rngState = game.rng.getState();
+        const rngState = dice.getState();
         const preField = game.field.map(c => ({ ...c }));
 
         // Bounded transient polling bump for the player in this state only.
@@ -99,7 +112,7 @@ function resolveTurn(game, moves) {
         const undoEmphasis = emphasisLever.applyEmphasis(
             player, game.cycle, moves ? moves.emphasis : null);
 
-        const awards = awardDelegates(contest.delegates, game.field, game.cycle, game.rng);
+        const awards = awardDelegates(contest.delegates, game.field, game.cycle, dice);
         processContestMomentum(game.field, awards);
 
         if (undoEmphasis) undoEmphasis();

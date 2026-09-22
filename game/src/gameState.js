@@ -7,9 +7,16 @@
    draws rng in identical order. `field` is never reordered in place;
    any sorting for display happens on a copy. model/ is imported,
    never modified.
+
+   v2 step 0 adds two things to the game object and changes no rule:
+     game.profile — the rules profile (profiles.js). Omitted -> frozen-2016.
+     game.dice    — split dice (dice.js): contest / event(t) / opponent(t).
+   game.rng is kept as an ALIAS of game.dice.contest (same object) so
+   nothing that read it breaks; new code should say game.dice.contest.
    ============================================================ */
 
-const RNG = require("./rng.js");
+const { makeDice } = require("./dice.js");
+const { getProfile } = require("./profiles.js");
 const { candidates2016, calendar2016, cycle2016 } = require("../../model/data-2016.js");
 
 // Same clone runPrimary makes — same order, same starting values.
@@ -35,19 +42,26 @@ function groupByDate(calendar) {
 }
 
 // seed omitted -> random per play; passed explicitly -> reproducible (gate).
-function newGame(playerId, seed) {
+// profileName omitted -> "frozen-2016" (see profiles.js for why the default
+// is frozen: every pre-v2 caller stays pinned to Gate A's world untouched).
+function newGame(playerId, seed, profileName) {
     const s = (seed === undefined || seed === null) ? (Date.now() >>> 0) : (seed >>> 0);
+    const profile = getProfile(profileName);
+    // INVARIANT (dice seam, v2 step 0 — replaces v1's "one rng instance"):
+    // dice.contest is ONE makeRng(seed) created here, ONCE per game, and passed
+    // to EVERY awardDelegates call across the season in calendar order. It is
+    // never re-created or re-seeded per turn or per contest. It is seeded with
+    // the master seed UNCHANGED, so a frozen-2016 no-move season is digit-for-
+    // digit runPrimary(mulberry32(seed)) (Gate A). dice.event(t) and
+    // dice.opponent(t) are SEPARATE per-turn generators derived from (seed, t);
+    // a draw on either moves zero contest dice. See dice.js; machine-checked in
+    // verify-cluster.js (Gate D).
+    const dice = makeDice(s);
     return {
         seed: s,
-        // INVARIANT (rng seam): ONE makeRng instance is created here, ONCE per
-        // game, stored as game.rng, and passed to EVERY awardDelegates call across
-        // the whole season in calendar order. It is never re-created or re-seeded
-        // per turn or per contest — a re-seed would reset the stream and break
-        // digit-for-digit identity with runPrimary. See turnLoop.resolveTurn.
-        // makeRng's stream is byte-identical to mulberry32 (proven in
-        // verify-makerng.js), so this switch does not change any outcome; it only
-        // adds getState()/setState() for the upcoming legibility counterfactual.
-        rng: RNG.makeRng(s),
+        profile: profile,
+        dice: dice,
+        rng: dice.contest,           // alias — same object as dice.contest
         field: buildField(candidates2016),
         cycle: cycle2016,
         calendar: calendar2016,

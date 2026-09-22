@@ -8,6 +8,27 @@
 
 ---
 
+# ▶ SESSION HANDOFF — 2026-09-22 (v2 step 0 built)
+
+**Fresh session: start here.** The 2026-08-08 block below is the v1 close-out and still true; this block is what changed since.
+
+## v2 STEP 0 — rules profiles + split dice + Gate D — ✅ BUILT AND GREEN 2026-09-22
+
+**Governing document:** the vault spec `06 - Leisure/Election Game/2026-09-22 04 SPEC — The Cluster (Events · Dropout · Momentum · Opponents).md`, §1 and §7 row 0. **MJ approved step 0 ONLY. Steps 1–6 are NOT approved and must not be started** — each comes back to MJ on its own, with something to look at. Step 1 (money rule, §2.5) is next when MJ says so.
+
+**What step 0 is:** plumbing that changes **no game rule** and is self-proving — Gate A still returns Trump 1327 / Cruz 978 / Carson 150 / Rubio 16 at seed 20160201.
+
+- **`game/src/profiles.js` — rules profiles.** `frozen-2016` (every cluster flag off — Gate A lives here forever) and `v2-2016` (every flag on — the real game). Flags: `money` / `dropouts` / `momentumBrake` / `events` / `opponentMoves`, one per build step. Both objects frozen; an unknown name throws. **`newGame(playerId, seed, profileName)` — profile omitted ⇒ `frozen-2016`**, so every pre-v2 gate, sweep and harness stayed pinned to Gate A's world with zero edits (verified: `prove-mechanism.js` Cruz +8 / Trump −8; `sweep-emphasis.js` 18 / 25.5 / 36 / 41 — identical to the recorded baselines). `main.js` creates the browser game under `v2-2016`; `?profile=frozen-2016` forces the frozen one and shows the DEV badge.
+- **`game/src/dice.js` — split dice.** `game.dice.contest` is the v1 generator under its new name (seeded with the master seed **unchanged** — see the deviation note). `game.dice.event(t)` / `game.dice.opponent(t)` return a **fresh generator per turn** from `deriveSeed(seed, purpose, t)` (FNV-1a fold + murmur3 finalizer). They refuse a missing, negative or fractional turn index, so a per-turn stream can never be shared across turns by accident. **No consumer exists yet** — they are the sockets steps 3 and 4 plug into. `game.rng` is an alias of `game.dice.contest`.
+- **`game/verify-cluster.js` — Gate D**, `npm run gate:cluster`, now the fifth member of `gate:all`. Checks 1–3 are live (profile isolation incl. the hard-coded Gate A numbers; stream independence — 126 side draws injected across a season move zero contest results; counterfactual honesty — per-turn streams replay identically and are distinct across turn/purpose/seed; Slice 2 no-op invariant holds under `v2-2016`). **Checks 4 and 5 print `PASS (vacuous)`** — the assertion is written and runs (polling-sum conservation; opponent effort ≤ `EFFORT_POOL`, ≤ 1 emphasis axis) but has nothing to bite on until steps 2 and 4. A vacuous pass is printed as such so it can never be mistaken for a live one. **One sub-check is time-limited: STEP-0 INERTNESS asserts `v2-2016` == `frozen-2016`. Retire it when step 2 lands** — from then on the two are expected to differ.
+- **`turnLoop.js`** draws from `game.dice.contest`; the result object now carries `profile`. The header comment lists where each step's hook lands and which flag gates it. No flag is read at step 0.
+
+**⚠️ One deliberate deviation from the spec table (§1.2b):** the table wrote the contest stream as `hash(seed, "contest")`. That would have moved every Gate A number. The spec's own governing sentences — "byte-identical to today", "Gate A never needs re-baselining" — win over the cell, so the contest stream is seeded with the **master seed unchanged** (identity derivation) and only the event/opponent streams are hashed. Recorded in `dice.js`; machine-checked (contest stream == `mulberry32(seed)` over 8,000 draws).
+
+**Gate count is now five.** `npm run gate:all` = Gate A · makeRng · Legibility · Broadcast · **Gate D (cluster)**. All five green at this commit; `model/` has no diff.
+
+---
+
 # ▶ SESSION HANDOFF — 2026-08-08 (session close)
 
 **Fresh session: start here.** Everything below this block is build history. This block is the live state.
@@ -40,7 +61,7 @@
 
 Separate small item, schedulable anytime: **MJ's copy pass** over the README "How the simulation works" / `rules.html` content — the only player-facing copy without a pass; modal and tooltip copy are FINAL.
 
-- **After building:** `cd game && npm run build`, then `npm run gate:all` (all four must stay green), then commit — including the rebuilt `game/dist/app.js`. `?seed=NNNNNNNN` on the URL locks the seed for repeatable checks.
+- **After building:** `cd game && npm run build`, then `npm run gate:all` (all **five** must stay green — Gate D `gate:cluster` joined the suite 2026-09-22), then commit — including the rebuilt `game/dist/app.js`. `?seed=NNNNNNNN` on the URL locks the seed for repeatable checks; `?profile=frozen-2016` pins a browser game to the Gate A world.
 
 ## Things a fresh session would otherwise rediscover the hard way
 
@@ -63,7 +84,7 @@ A fresh play layer now lives in **`game/`**, built ALONGSIDE a **FROZEN `model/`
 - **Copy-identity:** play-layer `mulberry32` byte-identical to the canonical one (sourced live from frozen `model/sim2016.js`) across **8,000 draws (4 seeds × 2000)**.
 
 **Three written invariants (machine- or comment-enforced):**
-1. **Single rng instance** — one `mulberry32(seed)` created once per game in `gameState.newGame`, threaded to every `awardDelegates` call; never re-seeded per turn/contest.
+1. **Single rng instance** — one `mulberry32(seed)` created once per game in `gameState.newGame`, threaded to every `awardDelegates` call; never re-seeded per turn/contest. **⚠️ SUPERSEDED 2026-09-22 (v2 step 0, deliberate and flagged in the spec):** the game now carries **split dice** (`game/src/dice.js`). The **contest** stream keeps this invariant exactly — one generator, seeded with the master seed unchanged, never re-seeded — so Gate A's numbers are untouched. Two further streams, `dice.event(t)` and `dice.opponent(t)`, are **fresh per turn**, derived from `(seed, purpose, turnIndex)`, and never touch the contest stream. The stronger invariant: **every stream is a pure function of (seed, turn), so any run replays exactly and any turn replays in isolation.** Machine-checked in `verify-cluster.js` (Gate D). `game.rng` remains an alias of `game.dice.contest`.
 2. **Copy-identity machine-check** — the gate extracts the canonical `mulberry32` from frozen `model/sim2016.js` source and asserts byte-identical output.
 3. **Calendar-order resolution** — contests resolve in `calendar2016` array order; date-grouping is display-only and never reorders resolution.
 

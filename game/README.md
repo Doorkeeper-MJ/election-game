@@ -78,17 +78,21 @@ The bundle is a plain IIFE and every asset path is relative, so the page runs st
 
 Append `?seed=NNNNNNNN` to the URL to lock the seed for repeatable playtests — a dev badge appears when you do.
 
+Append `?profile=frozen-2016` to pin a game to the **frozen** rules profile (every v2 cluster subsystem off — the Gate A world). The browser game otherwise runs under `v2-2016`. Profiles live in `src/profiles.js`; at v2 step 0 both play identically because no subsystem has landed yet.
+
 ## Gates
 
 ```bash
 npm run gate            # Gate A — digit-for-digit engine identity
 npm run gate:broadcast  # Gate C — broadcast context fidelity + prompt guardrails
-npm run gate:all        # all four gates
+npm run gate:cluster    # Gate D — rules profiles + split dice (v2 step 0)
+npm run gate:all        # all five gates
 ```
 
 - **Gate A** — a no-move playthrough must equal `runPrimary` exactly at the same seed, and the play-layer RNG must be byte-identical to the frozen canonical one.
 - **makeRng** — snapshot/restore fidelity for the legibility counterfactual.
 - **Legibility** — a zero-move season must show exactly zero measured effect, the counterfactual must never perturb the real game, and both levers must be visible in the readout.
 - **Broadcast** — context numbers must trace to live state, Slice 2 effect data must pass through unaltered, the commentator's `vantage` must be deterministic, and all three prompts must carry the no-fabrication rule.
+- **D — cluster** *(v2)* — a `frozen-2016` game must reproduce Gate A's numbers with the cluster code present; draws on the event/opponent dice must move zero contest results; per-turn streams must be pure functions of (seed, turn) so the counterfactual sees the identical event; dropout conservation and no-opponent-resource-cheat are asserted and print `PASS (vacuous)` until their steps exist.
 
 **The engine is frozen.** `../model/` is read, never written. Play-layer tuning lives in `src/config-play.js`; the validated engine knobs in `../model/config.js` are not touched.

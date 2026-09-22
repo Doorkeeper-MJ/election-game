@@ -88,7 +88,7 @@ The standing rule now lives in the `VOICES` table: **changing a voice's model re
 
 ### The gates
 
-Four suites, all re-runnable, all exiting non-zero on drift. `npm run gate:all`.
+Five suites, all re-runnable, all exiting non-zero on drift. `npm run gate:all`.
 
 | Gate | Asserts |
 |---|---|
@@ -96,6 +96,7 @@ Four suites, all re-runnable, all exiting non-zero on drift. `npm run gate:all`.
 | **makeRng** | snapshot/restore fidelity |
 | **Legibility** | zero move ⇒ zero effect; the counterfactual never perturbs live state |
 | **Broadcast** | context fidelity (delegates, standings, clinch, calendar sums, season totals each recomputed independently); effect passthrough; vantage determinism; prompt guardrails; truncation surfacing |
+| **D — cluster** *(v2, added 2026-09-22)* | `frozen-2016` reproduces Gate A digit-for-digit with the cluster code present; event/opponent dice never move a contest; per-turn streams replay identically (the counterfactual sees the same event); dropout conservation and no-opponent-resource-cheat — the last two vacuous until their steps land |
 
 Balance decisions are made by sweep, not by single playthrough — an early single-seed test read as "the lever is too weak" and a 200-seed sweep showed the opposite. Current four-way: hands-off 18% · emphasis only 25.5% · effort only 36% · both 41%, with the historical favorite still favored. The lever was left unchanged as a result.
 

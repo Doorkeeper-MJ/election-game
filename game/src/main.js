@@ -10,6 +10,7 @@
 const { newGame } = require("./gameState.js");
 const { resolveTurn, evaluateEnd } = require("./turnLoop.js");
 const CFG = require("./config-play.js");
+const PROFILES = require("./profiles.js");
 const { clear } = require("./ui/dom.js");
 const candidateSelect = require("./ui/candidateSelect.js");
 const quickStart = require("./ui/quickStart.js");
@@ -33,27 +34,43 @@ function readLockedSeed() {
 }
 const SEED_LOCK = readLockedSeed();
 
+// RULES PROFILE (v2 step 0). The browser game runs under PLAY_PROFILE
+// ("v2-2016"). DEV/TEST ONLY: ?profile=frozen-2016 pins a game to the Gate A
+// world for side-by-side checks. An unknown name falls back to PLAY_PROFILE
+// with a console warning — a typo must never silently change the rules.
+function readProfile() {
+    const m = /[?&]profile=([\w-]+)/.exec(location.search || "");
+    if (!m) return { name: PROFILES.PLAY_PROFILE, forced: false };
+    if (PROFILES.isProfile(m[1])) return { name: m[1], forced: true };
+    console.warn(`[profile] unknown rules profile "${m[1]}" — using ${PROFILES.PLAY_PROFILE}`);
+    return { name: PROFILES.PLAY_PROFILE, forced: false };
+}
+const PROFILE = readProfile();
+
 let game = null;
 let lastResult = null;
 
 function root() { return document.getElementById("app"); }
 
 function start(playerId) {
-    game = newGame(playerId, SEED_LOCK);     // SEED_LOCK null -> random; number -> locked
+    game = newGame(playerId, SEED_LOCK, PROFILE.name);   // SEED_LOCK null -> random; number -> locked
     lastResult = null;
-    window.EGV1 = { game: game, CFG: CFG, seedLock: SEED_LOCK };  // debug handle
+    window.EGV1 = { game: game, CFG: CFG, seedLock: SEED_LOCK, profile: PROFILE.name };  // debug handle
     renderPlay();
 }
 
-// Clearly-marked DEV badge, shown ONLY when a seed is locked.
+// Clearly-marked DEV badge, shown ONLY when a seed is locked or a profile is forced.
 function showSeedBadge() {
-    if (SEED_LOCK === null) return;
+    if (SEED_LOCK === null && !PROFILE.forced) return;
     const bar = document.querySelector(".topbar");
     if (bar && !document.getElementById("seed-badge")) {
         const badge = document.createElement("span");
         badge.id = "seed-badge";
         badge.className = "seed-badge";
-        badge.textContent = `DEV · seed locked: ${SEED_LOCK}`;
+        const parts = ["DEV"];
+        if (SEED_LOCK !== null) parts.push(`seed locked: ${SEED_LOCK}`);
+        if (PROFILE.forced) parts.push(`profile: ${PROFILE.name}`);
+        badge.textContent = parts.join(" · ");
         bar.appendChild(badge);
     }
 }

@@ -38,6 +38,86 @@
     }
   });
 
+  // src/dice.js
+  var require_dice = __commonJS({
+    "src/dice.js"(exports, module) {
+      var { makeRng } = require_rng();
+      function fmix32(h) {
+        h ^= h >>> 16;
+        h = Math.imul(h, 2246822507);
+        h ^= h >>> 13;
+        h = Math.imul(h, 3266489909);
+        h ^= h >>> 16;
+        return h >>> 0;
+      }
+      function deriveSeed(seed, label, turnIndex) {
+        if (!Number.isInteger(turnIndex) || turnIndex < 0) {
+          throw new Error(`deriveSeed: turnIndex must be a non-negative integer (got ${turnIndex}) \u2014 per-turn streams are never shared across turns`);
+        }
+        let h = (2166136261 ^ seed >>> 0) >>> 0;
+        for (let i = 0; i < label.length; i++) {
+          h ^= label.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        h ^= turnIndex + 2654435769 >>> 0;
+        h = Math.imul(h, 16777619);
+        return fmix32(h);
+      }
+      function makeDice(seed) {
+        const s = seed >>> 0;
+        return Object.freeze({
+          seed: s,
+          contest: makeRng(s),
+          event: function(turnIndex) {
+            return makeRng(deriveSeed(s, "event", turnIndex));
+          },
+          opponent: function(turnIndex) {
+            return makeRng(deriveSeed(s, "opp", turnIndex));
+          }
+        });
+      }
+      module.exports = { makeDice, deriveSeed, fmix32 };
+    }
+  });
+
+  // src/profiles.js
+  var require_profiles = __commonJS({
+    "src/profiles.js"(exports, module) {
+      var PROFILES2 = Object.freeze({
+        "frozen-2016": Object.freeze({
+          name: "frozen-2016",
+          cycle: 2016,
+          money: false,
+          dropouts: false,
+          momentumBrake: false,
+          events: false,
+          opponentMoves: false
+        }),
+        "v2-2016": Object.freeze({
+          name: "v2-2016",
+          cycle: 2016,
+          money: true,
+          dropouts: true,
+          momentumBrake: true,
+          events: true,
+          opponentMoves: true
+        })
+      });
+      var DEFAULT_PROFILE = "frozen-2016";
+      var PLAY_PROFILE = "v2-2016";
+      function getProfile(name) {
+        const key = name === void 0 || name === null ? DEFAULT_PROFILE : String(name);
+        const p = PROFILES2[key];
+        if (!p) throw new Error(`Unknown rules profile "${key}". Known: ${Object.keys(PROFILES2).join(", ")}`);
+        return p;
+      }
+      function isProfile(name) {
+        return Object.prototype.hasOwnProperty.call(PROFILES2, String(name));
+      }
+      module.exports = { PROFILES: PROFILES2, DEFAULT_PROFILE, PLAY_PROFILE, getProfile, isProfile };
+    }
+  });
+
   // ../model/data-2016.js
   var require_data_2016 = __commonJS({
     "../model/data-2016.js"(exports, module) {
@@ -188,7 +268,8 @@
   // src/gameState.js
   var require_gameState = __commonJS({
     "src/gameState.js"(exports, module) {
-      var RNG = require_rng();
+      var { makeDice } = require_dice();
+      var { getProfile } = require_profiles();
       var { candidates2016, calendar2016, cycle2016 } = require_data_2016();
       function buildField(candidates) {
         return candidates.map((c) => ({ ...c, momentum: 0, delegates: 0 }));
@@ -205,19 +286,16 @@
         }
         return turns;
       }
-      function newGame2(playerId, seed) {
+      function newGame2(playerId, seed, profileName) {
         const s = seed === void 0 || seed === null ? Date.now() >>> 0 : seed >>> 0;
+        const profile = getProfile(profileName);
+        const dice = makeDice(s);
         return {
           seed: s,
-          // INVARIANT (rng seam): ONE makeRng instance is created here, ONCE per
-          // game, stored as game.rng, and passed to EVERY awardDelegates call across
-          // the whole season in calendar order. It is never re-created or re-seeded
-          // per turn or per contest — a re-seed would reset the stream and break
-          // digit-for-digit identity with runPrimary. See turnLoop.resolveTurn.
-          // makeRng's stream is byte-identical to mulberry32 (proven in
-          // verify-makerng.js), so this switch does not change any outcome; it only
-          // adds getState()/setState() for the upcoming legibility counterfactual.
-          rng: RNG.makeRng(s),
+          profile,
+          dice,
+          rng: dice.contest,
+          // alias — same object as dice.contest
           field: buildField(candidates2016),
           cycle: cycle2016,
           calendar: calendar2016,
@@ -473,6 +551,7 @@
       function resolveTurn2(game2, moves) {
         const turn = game2.turns[game2.turnIndex];
         const player = game2.field.find((c) => c.id === game2.playerId);
+        const dice = game2.dice.contest;
         const effortSpent = {};
         if (moves && moves.effort) {
           for (const s of Object.keys(moves.effort)) {
@@ -482,6 +561,7 @@
         const emphasisChosen = moves != null && moves.emphasis != null ? moves.emphasis : null;
         const result = {
           date: turn.date,
+          profile: game2.profile.name,
           contests: [],
           playerMoves: {
             effort: effortSpent,
@@ -490,7 +570,7 @@
           }
         };
         for (const contest of turn.contests) {
-          const rngState = game2.rng.getState();
+          const rngState = dice.getState();
           const preField = game2.field.map((c) => ({ ...c }));
           const bump = campaignLever.bumpForState(moves, contest.state);
           if (bump !== 0 && player) player.polling += bump;
@@ -499,7 +579,7 @@
             game2.cycle,
             moves ? moves.emphasis : null
           );
-          const awards = awardDelegates(contest.delegates, game2.field, game2.cycle, game2.rng);
+          const awards = awardDelegates(contest.delegates, game2.field, game2.cycle, dice);
           processContestMomentum(game2.field, awards);
           if (undoEmphasis) undoEmphasis();
           if (bump !== 0 && player) player.polling -= bump;
@@ -1635,6 +1715,7 @@ ${FORMAT_RULE}`;
   var { newGame } = require_gameState();
   var { resolveTurn, evaluateEnd } = require_turnLoop();
   var CFG = require_config_play();
+  var PROFILES = require_profiles();
   var { clear } = require_dom();
   var candidateSelect = require_candidateSelect();
   var quickStart = require_quickStart();
@@ -1650,25 +1731,36 @@ ${FORMAT_RULE}`;
     return m ? parseInt(m[1], 10) >>> 0 : null;
   }
   var SEED_LOCK = readLockedSeed();
+  function readProfile() {
+    const m = /[?&]profile=([\w-]+)/.exec(location.search || "");
+    if (!m) return { name: PROFILES.PLAY_PROFILE, forced: false };
+    if (PROFILES.isProfile(m[1])) return { name: m[1], forced: true };
+    console.warn(`[profile] unknown rules profile "${m[1]}" \u2014 using ${PROFILES.PLAY_PROFILE}`);
+    return { name: PROFILES.PLAY_PROFILE, forced: false };
+  }
+  var PROFILE = readProfile();
   var game = null;
   var lastResult = null;
   function root() {
     return document.getElementById("app");
   }
   function start(playerId) {
-    game = newGame(playerId, SEED_LOCK);
+    game = newGame(playerId, SEED_LOCK, PROFILE.name);
     lastResult = null;
-    window.EGV1 = { game, CFG, seedLock: SEED_LOCK };
+    window.EGV1 = { game, CFG, seedLock: SEED_LOCK, profile: PROFILE.name };
     renderPlay();
   }
   function showSeedBadge() {
-    if (SEED_LOCK === null) return;
+    if (SEED_LOCK === null && !PROFILE.forced) return;
     const bar = document.querySelector(".topbar");
     if (bar && !document.getElementById("seed-badge")) {
       const badge = document.createElement("span");
       badge.id = "seed-badge";
       badge.className = "seed-badge";
-      badge.textContent = `DEV \xB7 seed locked: ${SEED_LOCK}`;
+      const parts = ["DEV"];
+      if (SEED_LOCK !== null) parts.push(`seed locked: ${SEED_LOCK}`);
+      if (PROFILE.forced) parts.push(`profile: ${PROFILE.name}`);
+      badge.textContent = parts.join(" \xB7 ");
       bar.appendChild(badge);
     }
   }
