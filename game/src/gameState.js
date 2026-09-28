@@ -13,15 +13,21 @@
      game.dice    — split dice (dice.js): contest / event(t) / opponent(t).
    game.rng is kept as an ALIAS of game.dice.contest (same object) so
    nothing that read it breaks; new code should say game.dice.contest.
+
+   v2 step 1 adds one field per candidate: `cash`, seeded from the frozen
+   data's `funds` and drawn down by the war-chest lever (moneyLever.js)
+   under a profile with money: true. The engine never reads it, so its
+   presence changes nothing under frozen-2016 (Gate A proves it).
    ============================================================ */
 
 const { makeDice } = require("./dice.js");
 const { getProfile } = require("./profiles.js");
 const { candidates2016, calendar2016, cycle2016 } = require("../../model/data-2016.js");
 
-// Same clone runPrimary makes — same order, same starting values.
+// Same clone runPrimary makes — same order, same starting values — plus
+// `cash` (step 1), which no engine function reads.
 function buildField(candidates) {
-    return candidates.map(c => ({ ...c, momentum: 0, delegates: 0 }));
+    return candidates.map(c => ({ ...c, momentum: 0, delegates: 0, cash: c.funds }));
 }
 
 // Group the chronological calendar into one turn per DATE (so Super

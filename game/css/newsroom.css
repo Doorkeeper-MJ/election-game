@@ -115,6 +115,13 @@ body {
     font-size: 12px; color: var(--muted);
 }
 
+/* ---- v2 step 1: war chest ---- */
+.money-label { margin-bottom: 6px; color: var(--gold); }
+.money-row .state-name { color: var(--gold); }
+.effect-money {
+    margin: 0 0 8px 0; font-size: 12px; color: var(--muted); letter-spacing: 0.5px;
+}
+
 /* ---- Slice 2: emphasis lever ---- */
 .emphasis-label { margin-top: 14px; }
 .emphasis-row .emph-meta { color: var(--muted); font-size: 12px; margin-left: 8px; }

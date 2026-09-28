@@ -15,18 +15,24 @@
 
    v2 step 0: contests draw from game.dice.contest (the v1 generator
    under its new name). game.profile says which cluster subsystems are
-   live; at step 0 none exist, so resolveTurn reads no flag yet. The
-   cluster hooks land here, step by step, each gated on its flag:
-     step 1  profile.money          effort budget from funds
+   live. The cluster hooks land here, step by step, each gated on its flag:
+     step 1  profile.money          war chest: bought effort (LIVE below)
      step 2  profile.dropouts       exits + redistribution (before contests)
      step 2  profile.momentumBrake  leader floor + band (after momentum)
      step 3  profile.events         the event draw — game.dice.event(turnIndex)
      step 4  profile.opponentMoves  opponent allocation — game.dice.opponent(turnIndex)
+
+   v2 step 1 (money): once per turn, BEFORE any contest, moneyLever.apply
+   converts moves.spend into extra effort points and deducts cash. The
+   bought points widen the pool the campaign lever draws from; nothing
+   else changes. Under frozen-2016 the receipt is zero and cash never
+   moves, so every pre-v2 gate and sweep is byte-identical.
    ============================================================ */
 
 const { awardDelegates, processContestMomentum } = require("../../model/engine.js");
 const campaignLever = require("./levers/campaignLever.js");
 const emphasisLever = require("./levers/emphasisLever.js");
+const moneyLever = require("./levers/moneyLever.js");
 const RNG = require("./rng.js");
 
 /* Legibility effect (Slice 2): authoritative − counterfactual, per candidate.
@@ -60,11 +66,20 @@ function leaderOf(field) {
 }
 
 // Resolve the current turn's contests through the frozen engine.
-// moves = { effort: { [stateName]: points }, emphasis: axisIndex|null } | null
+// moves = { effort: { [stateName]: points }, emphasis: axisIndex|null, spend: extraPoints } | null
 function resolveTurn(game, moves) {
     const turn = game.turns[game.turnIndex];
     const player = game.field.find(c => c.id === game.playerId);
     const dice = game.dice.contest;   // the ONE contest stream (see gameState.newGame)
+
+    // STEP 1 — war chest. Zero receipt unless game.profile.money. Cash is
+    // deducted here, once, before any contest; the engine never reads cash.
+    const receipt = moneyLever.apply(game, player, moves);
+    const allocated = campaignLever.totalAllocated(moves);
+    if (allocated > receipt.pool) {
+        throw new Error(`resolveTurn: ${allocated} effort allocated but the pool this turn is ${receipt.pool} ` +
+            `(base ${receipt.pool - receipt.bought} + bought ${receipt.bought})`);
+    }
 
     // What the player actually DID this turn (additive; the readout needs it
     // to distinguish "no moves" from "moves that measured zero"). Effort
@@ -83,6 +98,10 @@ function resolveTurn(game, moves) {
         playerMoves: {
             effort: effortSpent,
             emphasis: emphasisChosen,
+            bought: receipt.bought,      // extra effort points bought this turn (0 under frozen-2016)
+            spent: receipt.spent,        // cash it cost
+            pool: receipt.pool,          // base + bought
+            cashAfter: receipt.cashAfter,
             any: Object.keys(effortSpent).length > 0 || emphasisChosen !== null
         }
     };

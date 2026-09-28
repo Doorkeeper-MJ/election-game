@@ -19,5 +19,17 @@ module.exports = {
     // "What to emphasize" lever (Slice 2). One issue axis per turn, or none.
     EMPHASIS_STRONG_THRESHOLD: 2, // |position − mood| <= this ⇒ the axis is a strength ("lean in")
     EMPHASIS_AUTH_BUMP: 2,        // lean-in: transient authenticity bump (capped at 10)
-    EMPHASIS_SHIFT: 2             // shore-up: transient position shift toward mood (never past it)
+    EMPHASIS_SHIFT: 2,            // shore-up: transient position shift toward mood (never past it)
+
+    // "War chest" lever (v2 step 1, spec §2.5; live only under a profile with money: true).
+    // Money buys EFFORT, never polling: bought points join the same pool the campaign
+    // lever spends, so the per-state cap above still binds. Starting values; both are
+    // sweep outputs per the spec (§8), re-tuned by sweep-money.js, never by feel.
+    MONEY_COST_PER_EFFORT: 2,     // cash per extra effort point (data: Jeb 100, Trump 50, Cruz 25 ... Huckabee 4)
+    MONEY_MAX_EXTRA_PER_TURN: 4   // council guard 1 — per-turn spend ceiling (extra points, not cash)
+    // Set by sweep-money.js, 200 seeds, 2026-09-28. Grid (cost/ceiling → Cruz effort+money win%,
+    // effort+emphasis+money win%, Jeb max-money win%): 4/2 → 36.5, 41.0, 0 (money inert) ·
+    // 4/4 → 37.5, 43.5, 0 · 2/4 → 39.0, 46.0, 0 (chosen: same weight as the emphasis lever) ·
+    // 2/6 → 44.5, 46.0, 0 · 2/2 and 1/4 → money HURT Cruz (34–37%): early wins make him leader
+    // sooner and MOM_LEADER_BLEED turns on him. Baselines: effort-only 36.0, effort+emphasis 41.0.
 };

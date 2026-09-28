@@ -272,7 +272,7 @@
       var { getProfile } = require_profiles();
       var { candidates2016, calendar2016, cycle2016 } = require_data_2016();
       function buildField(candidates) {
-        return candidates.map((c) => ({ ...c, momentum: 0, delegates: 0 }));
+        return candidates.map((c) => ({ ...c, momentum: 0, delegates: 0, cash: c.funds }));
       }
       function groupByDate(calendar) {
         const turns = [];
@@ -460,8 +460,21 @@
         // |position − mood| <= this ⇒ the axis is a strength ("lean in")
         EMPHASIS_AUTH_BUMP: 2,
         // lean-in: transient authenticity bump (capped at 10)
-        EMPHASIS_SHIFT: 2
+        EMPHASIS_SHIFT: 2,
         // shore-up: transient position shift toward mood (never past it)
+        // "War chest" lever (v2 step 1, spec §2.5; live only under a profile with money: true).
+        // Money buys EFFORT, never polling: bought points join the same pool the campaign
+        // lever spends, so the per-state cap above still binds. Starting values; both are
+        // sweep outputs per the spec (§8), re-tuned by sweep-money.js, never by feel.
+        MONEY_COST_PER_EFFORT: 2,
+        // cash per extra effort point (data: Jeb 100, Trump 50, Cruz 25 ... Huckabee 4)
+        MONEY_MAX_EXTRA_PER_TURN: 4
+        // council guard 1 — per-turn spend ceiling (extra points, not cash)
+        // Set by sweep-money.js, 200 seeds, 2026-09-28. Grid (cost/ceiling → Cruz effort+money win%,
+        // effort+emphasis+money win%, Jeb max-money win%): 4/2 → 36.5, 41.0, 0 (money inert) ·
+        // 4/4 → 37.5, 43.5, 0 · 2/4 → 39.0, 46.0, 0 (chosen: same weight as the emphasis lever) ·
+        // 2/6 → 44.5, 46.0, 0 · 2/2 and 1/4 → money HURT Cruz (34–37%): early wins make him leader
+        // sooner and MOM_LEADER_BLEED turns on him. Baselines: effort-only 36.0, effort+emphasis 41.0.
       };
     }
   });
@@ -516,12 +529,54 @@
     }
   });
 
+  // src/levers/moneyLever.js
+  var require_moneyLever = __commonJS({
+    "src/levers/moneyLever.js"(exports, module) {
+      var CFG2 = require_config_play();
+      var MAX_PER_STATE = Math.floor(CFG2.MAX_POLL_BUMP / CFG2.POLL_BUMP_PER_EFFORT);
+      function enabled(game2) {
+        return !!(game2 && game2.profile && game2.profile.money);
+      }
+      function capacityFor(game2) {
+        const turn = game2 && game2.turns ? game2.turns[game2.turnIndex] : null;
+        if (!turn) return 0;
+        return Math.max(0, turn.contests.length * MAX_PER_STATE - CFG2.EFFORT_POOL);
+      }
+      function maxBuyable(game2, cand) {
+        if (!enabled(game2) || !cand) return 0;
+        const byCash = Math.floor((cand.cash || 0) / CFG2.MONEY_COST_PER_EFFORT);
+        return Math.max(0, Math.min(CFG2.MONEY_MAX_EXTRA_PER_TURN, byCash, capacityFor(game2)));
+      }
+      function boughtFor(game2, cand, spend) {
+        const want = Math.max(0, Math.floor(Number(spend) || 0));
+        return Math.min(want, maxBuyable(game2, cand));
+      }
+      function poolFor(game2, cand, spend) {
+        return CFG2.EFFORT_POOL + boughtFor(game2, cand, spend);
+      }
+      function apply(game2, cand, moves) {
+        const spend = moves ? moves.spend : 0;
+        const bought = boughtFor(game2, cand, spend);
+        const spent = bought * CFG2.MONEY_COST_PER_EFFORT;
+        if (bought > 0) cand.cash -= spent;
+        return {
+          bought,
+          spent,
+          pool: CFG2.EFFORT_POOL + bought,
+          cashAfter: cand ? cand.cash : null
+        };
+      }
+      module.exports = { enabled, capacityFor, maxBuyable, boughtFor, poolFor, apply, MAX_PER_STATE };
+    }
+  });
+
   // src/turnLoop.js
   var require_turnLoop = __commonJS({
     "src/turnLoop.js"(exports, module) {
       var { awardDelegates, processContestMomentum } = require_engine();
       var campaignLever = require_campaignLever();
       var emphasisLever = require_emphasisLever();
+      var moneyLever = require_moneyLever();
       var RNG = require_rng();
       function computeEffect(realAwards, cfAwards) {
         const real = {};
@@ -552,6 +607,11 @@
         const turn = game2.turns[game2.turnIndex];
         const player = game2.field.find((c) => c.id === game2.playerId);
         const dice = game2.dice.contest;
+        const receipt = moneyLever.apply(game2, player, moves);
+        const allocated = campaignLever.totalAllocated(moves);
+        if (allocated > receipt.pool) {
+          throw new Error(`resolveTurn: ${allocated} effort allocated but the pool this turn is ${receipt.pool} (base ${receipt.pool - receipt.bought} + bought ${receipt.bought})`);
+        }
         const effortSpent = {};
         if (moves && moves.effort) {
           for (const s of Object.keys(moves.effort)) {
@@ -566,6 +626,13 @@
           playerMoves: {
             effort: effortSpent,
             emphasis: emphasisChosen,
+            bought: receipt.bought,
+            // extra effort points bought this turn (0 under frozen-2016)
+            spent: receipt.spent,
+            // cash it cost
+            pool: receipt.pool,
+            // base + bought
+            cashAfter: receipt.cashAfter,
             any: Object.keys(effortSpent).length > 0 || emphasisChosen !== null
           }
         };
@@ -674,6 +741,7 @@
     "src/ui/quickStart.js"(exports, module) {
       var { el } = require_dom();
       var SEEN_KEY = "egv1.quickstart_seen";
+      var profileHasMoney = false;
       function hasSeen() {
         try {
           return localStorage.getItem(SEEN_KEY) === "1";
@@ -728,6 +796,8 @@
           ]),
           panel("YOUR LEVERS", [
             line({ html: "<b>WHERE TO CAMPAIGN</b> \u2014 3 effort points, yours to spread across the states voting this turn. Stack them, split them, or hold them back." }),
+            // v2 step 1 (2026-09-28) — DRAFT line pending MJ's copy pass. Shown only when the war chest is live.
+            ...profileHasMoney ? [line({ html: "<b>WAR CHEST</b> \u2014 your campaign cash, from the real 2016 numbers. Spend it for extra effort points, a few a turn, and it never comes back. Money buys reach, not love." })] : [],
             line({ html: "<b>WHAT TO EMPHASIZE</b> \u2014 pick one issue to run on this turn, or stay broad. Lean into a strength, or shore up a weak spot." })
           ]),
           panel("THE GOLD READOUT", [
@@ -758,7 +828,8 @@
         if (document.getElementById("qs-overlay")) return;
         document.body.appendChild(renderOverlay());
       }
-      function install() {
+      function install(opts) {
+        profileHasMoney = !!(opts && opts.money);
         const bar = document.querySelector(".topbar");
         if (bar && !document.getElementById("qs-help-btn")) {
           bar.appendChild(el("button", {
@@ -1020,33 +1091,80 @@
       var CFG2 = require_config_play();
       var { AXES } = require_data_2016();
       var emphasisLever = require_emphasisLever();
+      var moneyLever = require_moneyLever();
       var { tip } = require_tip();
       function render(game2, onResolve2) {
         const turn = game2.turns[game2.turnIndex];
         const player = game2.field.find((c) => c.id === game2.playerId);
         const wrap = el("div", { class: "panel turn-panel" });
-        const moves = { effort: {}, emphasis: null };
-        const POOL = CFG2.EFFORT_POOL;
+        const moves = { effort: {}, emphasis: null, spend: 0 };
+        const BASE = CFG2.EFFORT_POOL;
+        const MAX_PER_STATE = Math.floor(CFG2.MAX_POLL_BUMP / CFG2.POLL_BUMP_PER_EFFORT);
+        const moneyOn = moneyLever.enabled(game2);
         const t = tip(`Your moves for this date, then RUN CONTEST(S).
 
-WHERE TO CAMPAIGN \u2014 spread your ${POOL} effort points across today's states with + and \u2212.
+WHERE TO CAMPAIGN \u2014 spread your ${BASE} effort points across today's states with + and \u2212.${moneyOn ? `
+
+WAR CHEST \u2014 buy up to ${CFG2.MONEY_MAX_EXTRA_PER_TURN} extra effort points a turn at ${CFG2.MONEY_COST_PER_EFFORT} cash each. Cash never comes back. A state takes at most ${MAX_PER_STATE} points, so money buys reach across states, not a bigger push in one.` : ""}
 
 WHAT TO EMPHASIZE \u2014 \u25CB picks one issue to press. "You" is your position, "mood" is the electorate's, on a 0\u201310 scale.
 
-Both are optional. Skip them to play it straight.`);
+${moneyOn ? "All three are" : "Both are"} optional. Skip them to play it straight.`);
+        function pool() {
+          return moneyLever.poolFor(game2, player, moves.spend);
+        }
         function used() {
           return Object.keys(moves.effort).reduce((s, k) => s + moves.effort[k], 0);
         }
         function remaining() {
-          return POOL - used();
+          return pool() - used();
         }
         function redraw() {
           clear2(wrap);
           wrap.appendChild(el("h3", { text: `Turn ${game2.turnIndex + 1} of ${game2.turns.length} \u2014 ${turn.date}` }, [t.btn]));
           wrap.appendChild(t.body);
+          if (moneyOn && player) {
+            const maxBuy = moneyLever.maxBuyable(game2, player);
+            const bought = moneyLever.boughtFor(game2, player, moves.spend);
+            if (bought !== moves.spend) moves.spend = bought;
+            const capacity = moneyLever.capacityFor(game2);
+            const why = maxBuy > 0 ? ` \xB7 up to ${maxBuy} this turn at ${CFG2.MONEY_COST_PER_EFFORT} each` : capacity === 0 ? ` \xB7 nothing to buy today (${turn.contests.length === 1 ? "one state" : "today's states"} already covered by your ${BASE})` : " \xB7 no cash left";
+            wrap.appendChild(el("div", {
+              class: "lever-label money-label",
+              text: `WAR CHEST \u2014 cash ${player.cash} \xB7 buying ${bought} extra effort (${bought * CFG2.MONEY_COST_PER_EFFORT} cash)` + why
+            }));
+            wrap.appendChild(el("div", { class: "state-row money-row" }, [
+              el("span", { class: "state-name", text: "Extra effort points" }),
+              el("button", {
+                class: "step",
+                text: "\u2212",
+                onClick: () => {
+                  if (moves.spend > 0) {
+                    moves.spend -= 1;
+                    while (used() > pool()) {
+                      const top = Object.keys(moves.effort).sort((a, b) => moves.effort[b] - moves.effort[a])[0];
+                      moves.effort[top] -= 1;
+                    }
+                    redraw();
+                  }
+                }
+              }),
+              el("span", { class: "alloc", text: String(moves.spend) }),
+              el("button", {
+                class: "step",
+                text: "+",
+                onClick: () => {
+                  if (moves.spend < maxBuy) {
+                    moves.spend += 1;
+                    redraw();
+                  }
+                }
+              })
+            ]));
+          }
           wrap.appendChild(el("div", {
             class: "lever-label",
-            text: `WHERE TO CAMPAIGN \u2014 ${POOL} effort points (remaining: ${remaining()})`
+            text: `WHERE TO CAMPAIGN \u2014 ${pool()} effort points (remaining: ${remaining()})`
           }));
           for (const contest of turn.contests) {
             const cur = moves.effort[contest.state] || 0;
@@ -1067,7 +1185,7 @@ Both are optional. Skip them to play it straight.`);
                 class: "step",
                 text: "+",
                 onClick: () => {
-                  if (remaining() > 0) {
+                  if (remaining() > 0 && cur < MAX_PER_STATE) {
                     moves.effort[contest.state] = cur + 1;
                     redraw();
                   }
@@ -1149,6 +1267,12 @@ Both are optional. Skip them to play it straight.`);
         const movesMade = pm ? pm.any : null;
         let pushedAnywhere = false;
         let netPlayerDelta = 0;
+        if (pm && pm.bought > 0) {
+          wrap.appendChild(el("div", {
+            class: "effect-money",
+            text: `War chest: bought ${pm.bought} extra effort for ${pm.spent} cash \xB7 ${pm.cashAfter} left`
+          }));
+        }
         for (const c of lastResult2.contests) {
           const top = c.awards.slice().sort((a, b) => b.delegates - a.delegates).slice(0, 3).map((a) => `${lastName(a.name)} ${a.delegates}`).join(", ");
           wrap.appendChild(el("div", {
@@ -1209,8 +1333,9 @@ Both are optional. Skip them to play it straight.`);
       var FACTS_RULE = `
 HARD RULE \u2014 NEVER INVENT ANYTHING.
 Every number, state name, date, candidate name, and delegate count you use must come from the JSON context you are given. If a fact is not in the JSON, you do not know it and must not mention it.
-Specifically, this game models ONLY: delegates, momentum, polling, per-state contests, the calendar, and the player's two levers (where to campaign, what to emphasize).
-There is NO money, NO fundraising, NO ad spending, NO endorsements, NO debates, NO scandals, and NO national polling averages in this game. Never refer to any of them, not even in passing or as color.
+Specifically, this game models ONLY: delegates, momentum, polling, per-state contests, the calendar, and the player's levers exactly as listed under levers_available_to_player in the JSON.
+Money: if and only if the JSON carries campaign_cash fields (campaign_cash_remaining, campaign_cash_at_start, player_extra_effort_bought_this_turn), the player has a finite war chest that buys extra effort points, and you may cite those numbers. That is the ONLY money in this game. If the JSON has no campaign_cash fields, there is no money in this game and you never mention money.
+There is NO fundraising, NO donors, NO ad spending, NO endorsements, NO debates, NO scandals, and NO national polling averages in this game. Never refer to any of them, not even in passing or as color.
 Do not invent quotes, staffers, events, or historical claims about the real 2016 race. You are inside THIS simulation, and its JSON is the whole world.
 If you are unsure whether something is in the JSON, leave it out. Fewer, true specifics beat rich, false ones.`;
       var FORMAT_RULE = `
@@ -1290,9 +1415,11 @@ ${FORMAT_RULE}`;
         const h = (game2.seed >>> 0) + game2.turnIndex * 2654435761 >>> 0;
         return h % 3 === 0 ? "bold" : "measured";
       }
+      var CFG2 = require_config_play();
       function build(game2, lastResult2) {
         const player = game2.field.find((c) => c.id === game2.playerId) || null;
         const playerName = player ? player.name : null;
+        const moneyOn = !!(game2.profile && game2.profile.money);
         const sorted = game2.field.slice().sort((a, b) => b.delegates - a.delegates);
         const standings = sorted.filter((c) => c.delegates > 0 || c.id === game2.playerId || sorted.indexOf(c) < 4).map((c, i) => ({
           rank: sorted.indexOf(c) + 1,
@@ -1355,6 +1482,10 @@ ${FORMAT_RULE}`;
             player_net_delegate_effect_this_turn: turnNetDelta,
             player_made_moves: contests.some((c) => c.player_moves_measured_effect)
           };
+          if (moneyOn && lastResult2.playerMoves) {
+            thisTurn.player_extra_effort_bought_this_turn = lastResult2.playerMoves.bought || 0;
+            thisTurn.player_campaign_cash_spent_this_turn = lastResult2.playerMoves.spent || 0;
+          }
         }
         return {
           game: {
@@ -1371,7 +1502,11 @@ ${FORMAT_RULE}`;
             rank: playerRank,
             momentum: Math.round(player.momentum * 100) / 100,
             delegates_needed_to_clinch: playerNeeds,
-            mathematically_alive: playerNeeds !== null && playerNeeds <= delegatesRemaining
+            mathematically_alive: playerNeeds !== null && playerNeeds <= delegatesRemaining,
+            ...moneyOn ? {
+              campaign_cash_remaining: player.cash,
+              campaign_cash_at_start: player.funds
+            } : {}
           } : null,
           leader: {
             name: leader.name,
@@ -1392,8 +1527,11 @@ ${FORMAT_RULE}`;
             states_won_that_would_otherwise_have_been_lost: flipsWon
           },
           levers_available_to_player: {
-            where_to_campaign: "3 effort points per turn, allocated across the states voting that turn",
-            what_to_emphasize: "one issue axis per turn, or none"
+            where_to_campaign: moneyOn ? `${CFG2.EFFORT_POOL} effort points per turn plus any bought from the war chest, allocated across the states voting that turn` : `${CFG2.EFFORT_POOL} effort points per turn, allocated across the states voting that turn`,
+            what_to_emphasize: "one issue axis per turn, or none",
+            ...moneyOn ? {
+              war_chest: `the player may buy up to ${CFG2.MONEY_MAX_EXTRA_PER_TURN} extra effort points per turn at ${CFG2.MONEY_COST_PER_EFFORT} campaign cash each; cash is finite and never replenishes; this is the only money in the game`
+            } : {}
           },
           vantage: vantageFor(game2)
         };
@@ -1796,7 +1934,7 @@ ${FORMAT_RULE}`;
   }
   function boot() {
     showSeedBadge();
-    quickStart.install();
+    quickStart.install({ money: PROFILES.getProfile(PROFILE.name).money });
     sound.install();
     renderSelect();
   }

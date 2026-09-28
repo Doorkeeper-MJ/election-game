@@ -12,7 +12,7 @@ A turn-based simulation of the 2016 Republican presidential primary, wrapped aro
 
 No install, no build, no server. It runs in your browser.
 
-Each turn: one calendar date, three effort points to allocate, one optional issue axis. Clinch 1,237 delegates or lead when the calendar runs out.
+Each turn: one calendar date, three effort points to allocate, one optional issue axis, and (v2) a finite war chest that can buy a few more points where the ballot has room. Clinch 1,237 delegates or lead when the calendar runs out.
 
 ### The broadcast is optional
 

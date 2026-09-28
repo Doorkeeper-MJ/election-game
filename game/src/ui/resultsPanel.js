@@ -54,6 +54,14 @@ function render(lastResult, game) {
     let pushedAnywhere = false;
     let netPlayerDelta = 0;
 
+    // v2 step 1 — the war-chest receipt, only when something was bought.
+    if (pm && pm.bought > 0) {
+        wrap.appendChild(el("div", {
+            class: "effect-money",
+            text: `War chest: bought ${pm.bought} extra effort for ${pm.spent} cash · ${pm.cashAfter} left`
+        }));
+    }
+
     for (const c of lastResult.contests) {
         const top = c.awards.slice().sort((a, b) => b.delegates - a.delegates)
             .slice(0, 3)

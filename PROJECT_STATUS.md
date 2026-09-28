@@ -8,6 +8,26 @@
 
 ---
 
+# ▶ SESSION HANDOFF — 2026-09-28 (v2 step 1 built: the war chest)
+
+**Fresh session: start here.** Step 0 (below) and the v1 close-out (further below) are still true; this block is what changed since.
+
+## v2 STEP 1 — MONEY BUYS EFFORT — ✅ BUILT, ALL FIVE GATES GREEN 2026-09-28
+
+**Governing:** the vault spec §2.5, plus MJ's ruling of 2026-09-28: *"Build step 1 as specced with the two guards."* The two guards came from a Mastermind Council run the same morning (Drucker, Adams, Naval, Hill; synthesis in the vault, `06 - Leisure/Election Game/2026-09-28 Council Run — The Money Rule (step 1).md`): **(1) a per-turn spend ceiling; (2) an acceptance test that a badly run Jeb Bush still loses.** The council's unanimous constraint — money buys effort as *capacity*, capped, and never touches polling — is met by construction, because bought points enter the same pool the campaign lever spends and the per-state cap still binds. **Steps 2–6 remain NOT approved.**
+
+- **`game/src/levers/moneyLever.js`** — `cand.cash` (seeded from the frozen data's `funds` in `buildField`; the engine never reads it) is drawn down when the player buys extra effort points at `MONEY_COST_PER_EFFORT` each, up to `MONEY_MAX_EXTRA_PER_TURN` per turn (guard 1), **and only up to what today's ballot can absorb** (`contests × MAX_PER_STATE − EFFORT_POOL`; a one-state day sells nothing). That last rule was found in the first sweep: a naive max-spend burned Cruz's whole chest on three single-state days before Super Tuesday, for nothing. **Money buys reach across states, never a bigger hammer in one.** Profile-gated: under `frozen-2016` the receipt is zero and cash never moves.
+- **`turnLoop.js`** — `moneyLever.apply` runs once per turn before any contest; throws if effort allocated exceeds the pool; `playerMoves` now carries `bought / spent / pool / cashAfter`.
+- **`config-play.js`** — `MONEY_COST_PER_EFFORT: 2`, `MONEY_MAX_EXTRA_PER_TURN: 4`, **set by `sweep-money.js` (200 seeds), not by feel.** Grid recorded in the file. Chosen point: Cruz effort-only 36.0% → effort+money 39.0%; effort+emphasis 41.0% → +money 46.0%; **Jeb with all $100: 0.0%**; Trump with everything 90% (was 88.5%). Money weighs about what the emphasis lever weighs. **Finding worth keeping: at some settings money HURT Cruz (cost 2/ceiling 2: 41 → 34%)** — early bought wins make him delegate leader sooner and `MOM_LEADER_BLEED` turns against him. Peaking early is real in this engine.
+- **UI** — `turnPanel.js` gains the WAR CHEST row (only when `game.profile.money`): cash, points bought, cost, and why nothing is buyable when so; effort `+` now stops at 3 per state (the cap was silent before). `resultsPanel.js` prints the receipt line when something was bought. `quickStart.js` gains a DRAFT WAR CHEST line (MJ copy pass pending), shown only when the lever is live (`install({ money })` from `main.js`). Tooltip beat is DRAFT too.
+- **Voices** — `prompts.js` FACTS_RULE rewritten: money exists for the voices **only when the JSON carries `campaign_cash` fields**, which `context.js` emits only under a money profile (`campaign_cash_remaining`, `campaign_cash_at_start`, `player_extra_effort_bought_this_turn`, `player_campaign_cash_spent_this_turn`, and a `war_chest` lever description). Fundraising, donors, ads, endorsements, debates, scandals stay forbidden. **Gate C PART 4 updated accordingly** ("money" left the forbidden list; the `campaign_cash` rule is now required) and **PART 4b added**: no cash field leaks under `frozen-2016`; under `v2-2016` the context tracks the player's cash exactly every turn.
+- **Gate D check 6 (`verify-cluster.js`)** — frozen ignores spend · ceiling and capacity hold, cash arithmetic exact · **Jeb max-money wins ≤ 5% of 60 seasons and Trump stays modal (measured 0.0%)** · money never weakens the player (effort+money within 3 pts of effort-only on the same 60 seeds; measured 25.0% → 36.7%).
+- **Re-baselined: nothing.** `frozen-2016` is byte-identical (Gate A: Trump 1327 / Cruz 978 / Carson 150 / Rubio 16). The STEP-0 INERTNESS sub-check still passes because a no-move season buys nothing; it retires at step 2 as planned.
+
+**Next, on MJ's word only: step 2 (dropouts + momentum brake, one pass, one sweep).** Step 2 reads `cash` for the funds-exhausted dropout trigger.
+
+---
+
 # ▶ SESSION HANDOFF — 2026-09-22 (v2 step 0 built)
 
 **Fresh session: start here.** The 2026-08-08 block below is the v1 close-out and still true; this block is what changed since.

@@ -24,9 +24,15 @@ function vantageFor(game) {
     return (h % 3 === 0) ? "bold" : "measured";
 }
 
+const CFG = require("../config-play.js");
+
 function build(game, lastResult) {
     const player = game.field.find(c => c.id === game.playerId) || null;
     const playerName = player ? player.name : null;
+    // v2 step 1: money exists in the voices' world ONLY when the profile says so.
+    // Under frozen-2016 no cash field is emitted, and FACTS_RULE tells the voices
+    // that no cash field means no money in this game.
+    const moneyOn = !!(game.profile && game.profile.money);
 
     // ---- standings (sorted, real) ----
     const sorted = game.field.slice().sort((a, b) => b.delegates - a.delegates);
@@ -102,6 +108,10 @@ function build(game, lastResult) {
             player_net_delegate_effect_this_turn: turnNetDelta,
             player_made_moves: contests.some(c => c.player_moves_measured_effect)
         };
+        if (moneyOn && lastResult.playerMoves) {
+            thisTurn.player_extra_effort_bought_this_turn = lastResult.playerMoves.bought || 0;
+            thisTurn.player_campaign_cash_spent_this_turn = lastResult.playerMoves.spent || 0;
+        }
     }
 
     return {
@@ -119,7 +129,11 @@ function build(game, lastResult) {
             rank: playerRank,
             momentum: Math.round(player.momentum * 100) / 100,
             delegates_needed_to_clinch: playerNeeds,
-            mathematically_alive: playerNeeds !== null && playerNeeds <= delegatesRemaining
+            mathematically_alive: playerNeeds !== null && playerNeeds <= delegatesRemaining,
+            ...(moneyOn ? {
+                campaign_cash_remaining: player.cash,
+                campaign_cash_at_start: player.funds
+            } : {})
         } : null,
         leader: {
             name: leader.name,
@@ -140,8 +154,13 @@ function build(game, lastResult) {
             states_won_that_would_otherwise_have_been_lost: flipsWon
         },
         levers_available_to_player: {
-            where_to_campaign: "3 effort points per turn, allocated across the states voting that turn",
-            what_to_emphasize: "one issue axis per turn, or none"
+            where_to_campaign: moneyOn
+                ? `${CFG.EFFORT_POOL} effort points per turn plus any bought from the war chest, allocated across the states voting that turn`
+                : `${CFG.EFFORT_POOL} effort points per turn, allocated across the states voting that turn`,
+            what_to_emphasize: "one issue axis per turn, or none",
+            ...(moneyOn ? {
+                war_chest: `the player may buy up to ${CFG.MONEY_MAX_EXTRA_PER_TURN} extra effort points per turn at ${CFG.MONEY_COST_PER_EFFORT} campaign cash each; cash is finite and never replenishes; this is the only money in the game`
+            } : {})
         },
         vantage: vantageFor(game)
     };

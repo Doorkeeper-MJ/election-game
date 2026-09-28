@@ -137,19 +137,50 @@ console.log(vantageStable ? "  PASS — a re-render can never re-roll the postur
 console.log("");
 
 // ---- PART 4: prompt guardrails ----
-const FORBIDDEN = ["money", "fundraising", "ad spending", "endorsements", "debates", "scandals"];
+// v2 step 1 (2026-09-28): "money" left this list because the war chest is now a
+// modeled system. In its place every prompt must carry the campaign_cash rule:
+// money exists for the voices only when the JSON carries campaign_cash fields.
+const FORBIDDEN = ["fundraising", "donors", "ad spending", "endorsements", "debates", "scandals"];
 let guardOk = true;
 for (const [name, text] of Object.entries({ ANNOUNCER: PROMPTS.ANNOUNCER, ADVISOR: PROMPTS.ADVISOR, COMMENTATOR: PROMPTS.COMMENTATOR })) {
     if (text.indexOf("NEVER INVENT ANYTHING") === -1) { guardOk = false; fails.push(name + " missing no-fabrication rule"); }
     if (text.indexOf("must come from the JSON") === -1) { guardOk = false; fails.push(name + " missing JSON-only rule"); }
+    if (text.indexOf("campaign_cash") === -1 || text.indexOf("no campaign_cash fields, there is no money") === -1) {
+        guardOk = false; fails.push(name + " missing the campaign_cash money rule");
+    }
     for (const f of FORBIDDEN) {
         if (text.toLowerCase().indexOf(f) === -1) { guardOk = false; fails.push(name + " does not forbid: " + f); }
     }
 }
 check(guardOk, "prompt guardrails incomplete");
-console.log("PROMPT GUARDRAILS — all three voices carry the no-fabrication rule + the not-modeled list:");
+console.log("PROMPT GUARDRAILS — all three voices carry the no-fabrication rule + the not-modeled list + the campaign_cash rule:");
 console.log(`  forbidden systems each prompt must name: ${FORBIDDEN.join(", ")}`);
-console.log(guardOk ? "  PASS — no voice is licensed to invent a budget." : "  FAIL");
+console.log(guardOk ? "  PASS — no voice is licensed to invent a budget; money is citable only from campaign_cash fields." : "  FAIL");
+console.log("");
+
+// ---- PART 4b: money fields — absent under frozen-2016, exact under v2-2016 ----
+check(ctx.player.campaign_cash_remaining === undefined, "frozen-2016 context leaked a campaign_cash field");
+check(ctx.levers_available_to_player.war_chest === undefined, "frozen-2016 context leaked the war_chest lever");
+const gm = newGame("R16-2", SEED, "v2-2016");
+let spentTotal = 0, boughtTotal = 0, cashTrail = true;
+while (gm.turnIndex < gm.turns.length) {
+    const turn = gm.turns[gm.turnIndex];
+    const biggest = turn.contests.slice().sort((a, b) => b.delegates - a.delegates)[0];
+    const pm = gm.field.find(c => c.id === gm.playerId);
+    const before = pm.cash;
+    const res = resolveTurn(gm, { effort: { [biggest.state]: 3 }, emphasis: null, spend: 2 });
+    spentTotal += res.playerMoves.spent; boughtTotal += res.playerMoves.bought;
+    if (pm.cash !== before - res.playerMoves.spent) cashTrail = false;
+    const c2 = context.build(gm, res);
+    if (c2.player.campaign_cash_remaining !== pm.cash) cashTrail = false;
+    if (c2.this_turn_result.player_extra_effort_bought_this_turn !== res.playerMoves.bought) cashTrail = false;
+}
+const pmEnd = gm.field.find(c => c.id === gm.playerId);
+check(cashTrail && pmEnd.cash === pmEnd.funds - spentTotal, "v2-2016 campaign_cash in context does not track the player's cash");
+check(typeof ctx.levers_available_to_player.where_to_campaign === "string", "levers text missing");
+console.log("MONEY FIELDS — absent under frozen-2016, exact under v2-2016:");
+console.log(`  v2-2016 Cruz: start ${pmEnd.funds} · bought ${boughtTotal} pts · spent ${spentTotal} · remaining ${pmEnd.cash} · context tracked every turn: ${cashTrail}`);
+console.log(cashTrail ? "  PASS — the voices see cash only when it exists, and then exactly." : "  FAIL");
 console.log("");
 
 // ---- PART 5: truncation surfacing ----

@@ -113,7 +113,7 @@ function renderEnd() {
 
 function boot() {
     showSeedBadge();
-    quickStart.install();   // header "? HOW TO PLAY" button + first-launch auto-open (after badge — CSS expects badge-then-button order)
+    quickStart.install({ money: PROFILES.getProfile(PROFILE.name).money });   // header "? HOW TO PLAY" button + first-launch auto-open (after badge — CSS expects badge-then-button order); money flag shows the WAR CHEST line only when live
     sound.install();        // header mute toggle, after the help button
     renderSelect();
 }

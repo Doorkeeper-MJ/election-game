@@ -262,6 +262,85 @@ if (oppMoves === 0) console.log("  PASS (vacuous) — no result carries opponent
 else verdict(cheats === 0, `${oppMoves} opponent moves, 0 over the pool.`, `${cheats} opponent moves exceeded the player's pools`);
 console.log("");
 
+// ================= 6. MONEY (v2 step 1) =================
+// Council guards (2026-09-28 run): (1) per-turn ceiling holds; (2) "a badly run
+// Jeb still loses". Plus the structural promises of the lever: frozen-2016
+// ignores spend entirely; cash is exact; the lever sells only what today's
+// ballot can absorb; and money never weakens the player's existing levers.
+console.log(`6) MONEY — war chest buys effort as capacity, capped, never polling (step 1):`);
+const moneyLever = require("./src/levers/moneyLever.js");
+function spreadEffort(turn, pool) {
+    const effort = {}; let left = pool;
+    for (const c of turn.contests.slice().sort((a, b) => b.delegates - a.delegates)) {
+        if (left <= 0) break;
+        const pts = Math.min(moneyLever.MAX_PER_STATE, left); effort[c.state] = pts; left -= pts;
+    }
+    return effort;
+}
+function moneySeason(playerId, seed, profileName, buy) {
+    const g = newGame(playerId, seed, profileName);
+    let spent = 0, bought = 0, overCeiling = 0, overCapacity = 0;
+    while (g.turnIndex < g.turns.length) {
+        const turn = g.turns[g.turnIndex];
+        const p = g.field.find(c => c.id === g.playerId);
+        const spend = buy ? 99 : 0;                                  // ask for far more than allowed
+        const pool = moneyLever.poolFor(g, p, spend);
+        const before = p.cash;
+        const r = resolveTurn(g, { effort: spreadEffort(turn, pool), emphasis: null, spend: spend });
+        const pm = r.playerMoves;
+        spent += pm.spent; bought += pm.bought;
+        if (pm.bought > CFG.MONEY_MAX_EXTRA_PER_TURN) overCeiling++;
+        if (pm.bought > Math.max(0, turn.contests.length * moneyLever.MAX_PER_STATE - CFG.EFFORT_POOL)) overCapacity++;
+        if (p.cash !== before - pm.spent) throw new Error("cash trail broke");
+    }
+    const sorted = g.field.slice().sort((a, b) => b.delegates - a.delegates);
+    const me = g.field.find(c => c.id === playerId);
+    return { won: sorted[0].id === playerId, winner: sorted[0].name, cash: me.cash, funds: me.funds, spent, bought, overCeiling, overCapacity, table: finalTable(g.field) };
+}
+
+// 6a — frozen-2016 ignores spend: asking to buy changes nothing and costs nothing.
+const fz1 = moneySeason("R16-2", SEED, "frozen-2016", true);
+const fz0 = moneySeason("R16-2", SEED, "frozen-2016", false);
+const frozenIgnores = fz1.bought === 0 && fz1.spent === 0 && fz1.cash === fz1.funds && sameTable(fz1.table, fz0.table);
+check(frozenIgnores, "frozen-2016 did not ignore moves.spend");
+verdict(frozenIgnores, "frozen-2016 ignores moves.spend: 0 bought, 0 spent, cash untouched, season identical.", "frozen-2016 reacted to spend");
+
+// 6b — v2-2016: ceiling and capacity hold, cash exact.
+const v2c = moneySeason("R16-2", SEED, "v2-2016", true);
+const guardsOk = v2c.overCeiling === 0 && v2c.overCapacity === 0 && v2c.cash === v2c.funds - v2c.spent && v2c.spent === v2c.bought * CFG.MONEY_COST_PER_EFFORT;
+check(guardsOk, "money guards failed (ceiling / capacity / cash arithmetic)");
+verdict(guardsOk, `ceiling ${CFG.MONEY_MAX_EXTRA_PER_TURN}/turn never exceeded; never sold more than today's states can take; Cruz cash ${v2c.funds} → ${v2c.cash} after buying ${v2c.bought} points for ${v2c.spent}.`,
+    `overCeiling=${v2c.overCeiling} overCapacity=${v2c.overCapacity} cash=${v2c.cash}`);
+
+// 6c — "Jeb still loses": max-money, max-effort Jeb across seeds must not become a winner.
+const JEB_SEEDS = 60, JEB_MAX_WIN_PCT = 5;
+let jebWins = 0; const jebWinners = {};
+for (let i = 0; i < JEB_SEEDS; i++) {
+    const r = moneySeason("R16-5", 20160000 + i, "v2-2016", true);
+    if (r.won) jebWins++;
+    jebWinners[r.winner] = (jebWinners[r.winner] || 0) + 1;
+}
+const jebPct = 100 * jebWins / JEB_SEEDS;
+const jebModal = Object.entries(jebWinners).sort((a, b) => b[1] - a[1])[0][0];
+const jebOk = jebPct <= JEB_MAX_WIN_PCT && jebModal === "Donald Trump";
+check(jebOk, `Jeb with maximum money won ${jebPct.toFixed(1)}% (limit ${JEB_MAX_WIN_PCT}%) or displaced the favorite`);
+verdict(jebOk, `council guard 2 — Jeb Bush (funds 100) spending everything wins ${jebPct.toFixed(1)}% of ${JEB_SEEDS} seasons; modal winner still ${jebModal}. Money buys reach, not the nomination.`,
+    `Jeb won ${jebPct.toFixed(1)}%, modal ${jebModal}`);
+
+// 6d — money never weakens the player: Cruz effort+money (v2) >= Cruz effort-only (frozen), within noise.
+const AG_SEEDS = 60, TOLERANCE_PTS = 3;
+let baseWins = 0, moneyWins = 0;
+for (let i = 0; i < AG_SEEDS; i++) {
+    if (moneySeason("R16-2", 20160100 + i, "frozen-2016", false).won) baseWins++;
+    if (moneySeason("R16-2", 20160100 + i, "v2-2016", true).won) moneyWins++;
+}
+const basePct = 100 * baseWins / AG_SEEDS, moneyPct = 100 * moneyWins / AG_SEEDS;
+const agencyOk = moneyPct >= basePct - TOLERANCE_PTS;
+check(agencyOk, `money weakened the player: ${moneyPct.toFixed(1)}% vs ${basePct.toFixed(1)}% baseline`);
+verdict(agencyOk, `Cruz effort-only ${basePct.toFixed(1)}% → effort+money ${moneyPct.toFixed(1)}% over ${AG_SEEDS} seeds (must not fall more than ${TOLERANCE_PTS} pts).`,
+    `money made the lever weaker`);
+console.log("");
+
 if (!pass) { console.log("Failures:"); for (const f of fails) console.log("  - " + f); console.log(""); }
 console.log(pass ? "GATE D (CLUSTER): PASS" : "GATE D (CLUSTER): FAIL");
 process.exit(pass ? 0 : 1);

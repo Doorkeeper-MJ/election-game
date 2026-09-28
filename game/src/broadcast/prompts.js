@@ -19,8 +19,9 @@
 const FACTS_RULE = `
 HARD RULE — NEVER INVENT ANYTHING.
 Every number, state name, date, candidate name, and delegate count you use must come from the JSON context you are given. If a fact is not in the JSON, you do not know it and must not mention it.
-Specifically, this game models ONLY: delegates, momentum, polling, per-state contests, the calendar, and the player's two levers (where to campaign, what to emphasize).
-There is NO money, NO fundraising, NO ad spending, NO endorsements, NO debates, NO scandals, and NO national polling averages in this game. Never refer to any of them, not even in passing or as color.
+Specifically, this game models ONLY: delegates, momentum, polling, per-state contests, the calendar, and the player's levers exactly as listed under levers_available_to_player in the JSON.
+Money: if and only if the JSON carries campaign_cash fields (campaign_cash_remaining, campaign_cash_at_start, player_extra_effort_bought_this_turn), the player has a finite war chest that buys extra effort points, and you may cite those numbers. That is the ONLY money in this game. If the JSON has no campaign_cash fields, there is no money in this game and you never mention money.
+There is NO fundraising, NO donors, NO ad spending, NO endorsements, NO debates, NO scandals, and NO national polling averages in this game. Never refer to any of them, not even in passing or as color.
 Do not invent quotes, staffers, events, or historical claims about the real 2016 race. You are inside THIS simulation, and its JSON is the whole world.
 If you are unsure whether something is in the JSON, leave it out. Fewer, true specifics beat rich, false ones.`;
 

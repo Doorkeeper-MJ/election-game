@@ -23,6 +23,10 @@ const { el } = require("./dom.js");
 
 const SEEN_KEY = "egv1.quickstart_seen";
 
+// v2 step 1: set by install({ money }) from the rules profile the game runs
+// under, so the WAR CHEST line appears only when the lever is live.
+let profileHasMoney = false;
+
 function hasSeen() {
     try { return localStorage.getItem(SEEN_KEY) === "1"; } catch (e) { return false; }
 }
@@ -68,6 +72,8 @@ function renderOverlay() {
 
         panel("YOUR LEVERS", [
             line({ html: "<b>WHERE TO CAMPAIGN</b> — 3 effort points, yours to spread across the states voting this turn. Stack them, split them, or hold them back." }),
+            // v2 step 1 (2026-09-28) — DRAFT line pending MJ's copy pass. Shown only when the war chest is live.
+            ...(profileHasMoney ? [line({ html: "<b>WAR CHEST</b> — your campaign cash, from the real 2016 numbers. Spend it for extra effort points, a few a turn, and it never comes back. Money buys reach, not love." })] : []),
             line({ html: "<b>WHAT TO EMPHASIZE</b> — pick one issue to run on this turn, or stay broad. Lean into a strength, or shore up a weak spot." })
         ]),
 
@@ -107,7 +113,8 @@ function show() {
 /* Header button + first-launch auto-open. Call once at boot, AFTER
    showSeedBadge() — the badge carries margin-left:auto, and the CSS
    sibling rule expects badge-then-button order when both exist. */
-function install() {
+function install(opts) {
+    profileHasMoney = !!(opts && opts.money);
     const bar = document.querySelector(".topbar");
     if (bar && !document.getElementById("qs-help-btn")) {
         bar.appendChild(el("button", {

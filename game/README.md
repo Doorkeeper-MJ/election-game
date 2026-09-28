@@ -20,7 +20,8 @@ First launch opens a **Quick Start** overlay covering what you control; re-open 
 
 1. **Where to campaign** — allocate 3 effort points across the states voting that turn.
 2. **What to emphasize** — lean into one issue axis, or none.
-3. **Run the contest(s)** — and read the gold readout: the *measured* effect of your moves, from a real-engine counterfactual (the same contest re-run with you doing nothing).
+3. **War chest** *(v2, step 1)* — your candidate's real 2016 campaign funds, as a finite pot. Spend it for a few extra effort points a turn; it never comes back, and it only buys what that day's ballot can absorb (a state takes at most 3 points), so money buys reach across states, never a bigger push in one. Bought points join lever 1's pool; money never touches polling directly.
+4. **Run the contest(s)** — and read the gold readout: the *measured* effect of your moves, from a real-engine counterfactual (the same contest re-run with you doing nothing).
 
 Clinch 1,237 delegates or lead when the calendar runs out.
 
@@ -85,7 +86,7 @@ Append `?profile=frozen-2016` to pin a game to the **frozen** rules profile (eve
 ```bash
 npm run gate            # Gate A — digit-for-digit engine identity
 npm run gate:broadcast  # Gate C — broadcast context fidelity + prompt guardrails
-npm run gate:cluster    # Gate D — rules profiles + split dice (v2 step 0)
+npm run gate:cluster    # Gate D — rules profiles + split dice (v2 step 0) + the war chest guards (step 1)
 npm run gate:all        # all five gates
 ```
 
@@ -94,5 +95,6 @@ npm run gate:all        # all five gates
 - **Legibility** — a zero-move season must show exactly zero measured effect, the counterfactual must never perturb the real game, and both levers must be visible in the readout.
 - **Broadcast** — context numbers must trace to live state, Slice 2 effect data must pass through unaltered, the commentator's `vantage` must be deterministic, and all three prompts must carry the no-fabrication rule.
 - **D — cluster** *(v2)* — a `frozen-2016` game must reproduce Gate A's numbers with the cluster code present; draws on the event/opponent dice must move zero contest results; per-turn streams must be pure functions of (seed, turn) so the counterfactual sees the identical event; dropout conservation and no-opponent-resource-cheat are asserted and print `PASS (vacuous)` until their steps exist.
+  Step 1 adds the money checks: `frozen-2016` ignores the spend entirely; the per-turn ceiling and the ballot-capacity rule hold and the cash arithmetic is exact; **a Jeb Bush spending all of his $100 still loses** (at most 5% of seasons; Trump stays the modal winner); and money never weakens the player's existing levers (effort+money win rate within 3 points of effort-only, same seeds).
 
 **The engine is frozen.** `../model/` is read, never written. Play-layer tuning lives in `src/config-play.js`; the validated engine knobs in `../model/config.js` are not touched.
